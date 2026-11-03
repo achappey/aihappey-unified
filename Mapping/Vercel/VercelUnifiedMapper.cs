@@ -150,16 +150,6 @@ public static class VercelUnifiedMapper
                 ProviderMetadata = providerMetadata
             };
 
-            if (providerExecuted == false
-                && !string.Equals(GetValue<string>(data, "toolName"), "ai_input_required", StringComparison.OrdinalIgnoreCase))
-            {
-                yield return new ToolApprovalRequestUIPart
-                {
-                    ApprovalId = envelope.Id ?? string.Empty,
-                    ToolCallId = envelope.Id ?? string.Empty
-                };
-            }
-
             yield break;
         }
 
@@ -233,7 +223,9 @@ public static class VercelUnifiedMapper
             "tool-approval-request" => new ToolApprovalRequestUIPart
             {
                 ApprovalId = GetValue<string>(data, "approvalId") ?? string.Empty,
-                ToolCallId = GetValue<string>(data, "toolCallId") ?? string.Empty
+                ToolCallId = GetValue<string>(data, "toolCallId") ?? string.Empty,
+                Reason = GetValue<string>(data, "reason"),
+                ApprovalDescriptor = GetValue<object>(data, "approvalDescriptor")
             },
             "tool-input-start" => new ToolCallStreamingStartPart
             {
