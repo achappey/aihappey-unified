@@ -480,21 +480,7 @@ public static class VercelUnifiedMapper
             _ => JsonSerializer.Serialize(file.Data, Json)
         };
 
-        if (string.IsNullOrEmpty(data)
-            || data.StartsWith("data:", StringComparison.OrdinalIgnoreCase)
-            || Uri.TryCreate(data, UriKind.Absolute, out _))
-        {
-            return data ?? string.Empty;
-        }
-
-        if (data.Length % 4 == 0)
-        {
-            var decoded = new byte[data.Length / 4 * 3];
-            if (Convert.TryFromBase64String(data, decoded, out var bytesWritten))
-                return $"data:{mediaType};base64,{Convert.ToBase64String(decoded.AsSpan(0, bytesWritten))}";
-        }
-
-        return data;
+        return data ?? string.Empty;
     }
 
     private static T? GetTypedData<T>(AIEventEnvelope envelope)
