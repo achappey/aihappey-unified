@@ -7,6 +7,9 @@ public static partial class ResponsesUnifiedMapper
 {
     private static AIUsage? ToUnifiedUsage(object? value)
     {
+        if (value is AIUsage normalized)
+            return normalized;
+
         var usage = ToResponseUsageObject(value);
         return usage is null
             ? null
@@ -20,7 +23,12 @@ public static partial class ResponsesUnifiedMapper
                         : null),
                 CachedInputTokens = usage.InputTokensDetails?.CachedTokens,
                 CacheWriteInputTokens = usage.InputTokensDetails?.CacheWriteTokens,
-                ReasoningTokens = usage.OutputTokensDetails?.ReasoningTokens
+                ReasoningTokens = usage.OutputTokensDetails?.ReasoningTokens,
+                AdditionalProperties = (usage.Raw ?? JsonSerializer.SerializeToElement(usage, ResponseJson.Default))
+                    .EnumerateObject()
+                    .Where(property => property.Name is not ("inputTokens" or "outputTokens" or "totalTokens"
+                        or "cachedInputTokens" or "cacheWriteInputTokens" or "reasoningTokens"))
+                    .ToDictionary(property => property.Name, property => property.Value.Clone())
             };
     }
 
@@ -39,27 +47,34 @@ public static partial class ResponsesUnifiedMapper
     }
 
     private static ResponseUsage ToResponseUsage(AIUsage usage)
-        => usage is null
-            ? new ResponseUsage()
-            : new ResponseUsage
-            {
-                InputTokens = usage.InputTokens,
-                InputTokensDetails = usage.CachedInputTokens is not null || usage.CacheWriteInputTokens is not null
-                    ? new ResponseInputTokensDetails
-                    {
-                        CachedTokens = usage.CachedInputTokens,
-                        CacheWriteTokens = usage.CacheWriteInputTokens
-                    }
-                    : null,
-                OutputTokens = usage.OutputTokens,
-                OutputTokensDetails = usage.ReasoningTokens is not null
-                    ? new ResponseOutputTokensDetails { ReasoningTokens = usage.ReasoningTokens }
-                    : null,
-                TotalTokens = usage.TotalTokens
-                    ?? (usage.InputTokens is not null && usage.OutputTokens is not null
-                        ? usage.InputTokens + usage.OutputTokens
-                        : null)
-            };
+    {
+        var result = ToResponseUsageObject(usage.AdditionalProperties) ?? new ResponseUsage();
+        if (usage.AdditionalProperties?.TryGetValue("input_tokens_details", out var inputDetails) == true
+            && inputDetails.ValueKind == JsonValueKind.Object)
+            result.InputTokensDetails = inputDetails.Deserialize<ResponseInputTokensDetails>(Json);
+        if (usage.AdditionalProperties?.TryGetValue("output_tokens_details", out var outputDetails) == true
+            && outputDetails.ValueKind == JsonValueKind.Object)
+            result.OutputTokensDetails = outputDetails.Deserialize<ResponseOutputTokensDetails>(Json);
+        result.InputTokens = usage.InputTokens;
+        result.OutputTokens = usage.OutputTokens;
+        result.TotalTokens = usage.TotalTokens
+            ?? (usage.InputTokens is not null && usage.OutputTokens is not null
+                ? usage.InputTokens + usage.OutputTokens : null);
+        if (usage.CachedInputTokens is not null || usage.CacheWriteInputTokens is not null)
+        {
+            result.InputTokensDetails ??= new ResponseInputTokensDetails();
+            result.InputTokensDetails.CachedTokens = usage.CachedInputTokens ?? result.InputTokensDetails.CachedTokens;
+            result.InputTokensDetails.CacheWriteTokens = usage.CacheWriteInputTokens ?? result.InputTokensDetails.CacheWriteTokens;
+        }
+        if (usage.ReasoningTokens is not null)
+        {
+            result.OutputTokensDetails ??= new ResponseOutputTokensDetails();
+            result.OutputTokensDetails.ReasoningTokens = usage.ReasoningTokens;
+        }
+        // Raw is diagnostic input, not an alternative to the updated normalized counters.
+        result.Raw = null;
+        return result;
+    }
 
     private static ResponseUsage? ToResponseUsageObject(object? value)
     {

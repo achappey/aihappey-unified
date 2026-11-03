@@ -200,6 +200,8 @@ public static partial class ChatCompletionsUnifiedMapper
         else if (data is AIFinishEventData finish)
             choices.Add(new ChatCompletionStreamChoice { Index = 0, Delta = new ChatCompletionDelta {  }, FinishReason = finish.FinishReason == "tool-calls" ? "tool_calls" : finish.FinishReason });
 
+        var usage = ExtractMetadataElement(metadata, "chatcompletions.stream.usage")?.ToChatCompletionUsage();
+
         return new ChatCompletionUpdate
         {
             Id = ExtractMetadataValue<string>(metadata, "chatcompletions.stream.id") ?? streamEvent.Event.Id ?? $"chatcmpl_{Guid.NewGuid():N}",
@@ -208,7 +210,7 @@ public static partial class ChatCompletionsUnifiedMapper
             Model = ExtractMetadataValue<string>(metadata, "chatcompletions.stream.model") ?? (data as AIFinishEventData)?.Model ?? "unknown",
             ServiceTier = ExtractMetadataValue<string>(metadata, "chatcompletions.stream.service_tier"),
             Choices = choices,
-            Usage = null,
+            Usage = usage,
             AdditionalProperties = BuildChatCompletionUpdateAdditionalProperties(metadata)
         };
     }

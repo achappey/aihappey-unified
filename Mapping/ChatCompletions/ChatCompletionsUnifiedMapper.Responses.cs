@@ -40,7 +40,7 @@ public static partial class ChatCompletionsUnifiedMapper
                     Metadata = outputMetadata.Count > 0 ? outputMetadata : null
                 }
                 : null,
-            Metadata = response.TryGetProperty("metadata", out var metadata) ? ToDictionary(metadata) : null
+            Metadata = BuildUnifiedResponseMetadata(response)
         };
     }
 
@@ -141,6 +141,19 @@ public static partial class ChatCompletionsUnifiedMapper
             ? rawChoices.Value.ReadChatContract<List<ChatCompletionChoice>>() : [];
         if (choices.Count == 0)
             choices = BuildChoicesFromOutput(response.Output);
+        else
+        {
+            foreach (var (choice, item) in choices.Zip(response.Output?.Items?
+                         .Where(item => item.Type == "message") ?? []))
+            {
+                var tools = item.Content?.OfType<AIToolCallContentPart>().ToList() ?? [];
+                if (tools.Any(tool => tool.ProviderExecuted == true
+                        && (HasToolOutput(tool) || tool.State is "output-available" or "output-error"))
+                    && !tools.Any(tool => tool.IsClientToolCall)
+                    && choice.FinishReason is null or "tool_calls" or "function_call")
+                    choice.FinishReason = "stop";
+            }
+        }
 
         return new ChatCompletion
         {
@@ -150,16 +163,20 @@ public static partial class ChatCompletionsUnifiedMapper
             Model = model,
             Choices = choices,
             Usage = response.Usage.ToChatCompletionUsage(),
+            ServiceTier = ExtractMetadataValue<string>(metadata, "chatcompletions.response.service_tier"),
+            SystemFingerprint = ExtractMetadataValue<string>(metadata, "chatcompletions.response.system_fingerprint"),
+            Metadata = ExtractMetadataValue<Dictionary<string, string>>(metadata, "chatcompletions.response.metadata"),
+            Moderation = ExtractMetadataValue<ChatCompletionModeration>(metadata, "chatcompletions.response.moderation"),
             AdditionalProperties = BuildChatCompletionAdditionalProperties(metadata)
         };
     }
 
     private static Dictionary<string, object?> BuildUnifiedResponseMetadata(JsonElement response)
     {
-        var metadata = new Dictionary<string, object?>
-        {
-            ["chatcompletions.response.raw"] = response.Clone()
-        };
+        var metadata = response.TryGetProperty("metadata", out var nativeMetadata)
+            ? ToDictionary(nativeMetadata) ?? []
+            : new Dictionary<string, object?>();
+        metadata["chatcompletions.response.raw"] = response.Clone();
 
         foreach (var prop in response.EnumerateObject())
             metadata[$"chatcompletions.response.{prop.Name}"] = prop.Value.Clone();

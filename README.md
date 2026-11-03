@@ -13,6 +13,23 @@ Unified AI models and conversions to and from the reusable Responses, Chat Compl
 
 For Vercel file parts, string payloads (including JSON strings) are preserved verbatim, not inferred to be base64: ordinary text and relative references can also be valid base64. Supply a complete Data URL or use `byte[]`, `Memory<byte>`, or `ReadOnlyMemory<byte>` to explicitly encode binary content as a Data URL.
 
+## Protocol fidelity
+
+The Responses, Chat Completions, Messages, and Interactions mappers retain native request/response envelope fields in protocol-prefixed unified metadata. Normalized controls remain authoritative; native-only settings and extension fields are restored when mapping back to their protocol. Native metadata is retained separately from the captured envelope. Existing provider-scoped usage/replay metadata is still retained. Request mapping continues to set `store=false`; it does not opt callers into server-side storage.
+
+| Protocol | Covered fidelity improvements |
+|---|---|
+| Responses | Reasoning and inclusion options, tool-call limits, cache/continuation controls, response identity and incomplete/error details, usage extensions including nested token details, image URL/file-ID/detail preservation, text logprobs/cache breakpoints, refusals, and opaque native input replay. |
+| Chat Completions | Native sampling/reasoning/audio/cache options, modern versus legacy token-limit fields, headers, message/audio/refusal/legacy-function fields, custom-tool text inputs, multimodal parts and extensions, response identity/multiple choices/logprobs, and native streaming usage details. |
+| Messages | Structured/cache-controlled system prompts, native thinking/output/cache/container options, deferred-tool controls, response identity/stop details/extensions, ordered text/reasoning/tool blocks, and initial streaming reasoning signatures. |
+| Interactions | Model versus agent identity, generation/thinking/multimodal configuration, continuation/environment/labels/safety options, response identity/extensions, normalized usage on export, and reverse-stream status/usage/signature mapping. |
+
+These are native fidelity guarantees for the mapped fields, not a claim that different protocols have interchangeable semantics. Opaque Responses input items/content replay only to the original provider. Unknown Interactions steps/content and unknown streaming event types still have no general normalized semantic mapping. Interactions native usage remains available as its contract object; exporting `AIUsage` also maps its corresponding counters.
+
+Existing tool approval events, client-side versus provider-executed tool behavior, and explicit per-stream state ownership are unchanged. Synthetic Chat Completions finishes retain their existing finish-reason spelling and null usage behavior; usage captured from a native Chat Completions chunk can be replayed. Vercel mappings are unchanged.
+
+The protocol audit used the reusable sibling contract libraries and the latest official generated schemas available on 2026-11-03: OpenAI's [Responses request schema](https://github.com/openai/openai-python/blob/f6e8480f9a5b2a4d02b17a1da54a1e57964bc312/src/openai/types/responses/response_create_params.py) and [Chat Completions request schema](https://github.com/openai/openai-python/blob/f6e8480f9a5b2a4d02b17a1da54a1e57964bc312/src/openai/types/chat/completion_create_params.py), Anthropic's [Messages schema](https://github.com/anthropics/anthropic-sdk-python/blob/5752c132041af71055584632caab5ca2325cae5e/src/anthropic/types/message_create_params.py), and Google's [Interactions schema](https://github.com/googleapis/python-genai/blob/2eaf2d84e6cc3714eb5b5669fc26a2a1f5edf6c9/google/genai/_gaos/types/interactions/createmodelinteraction.py). SDK schemas were used because the documentation websites were unreachable from the audit environment.
+
 ## Stateless streaming
 
 There is no global or ambient request state, session store, provider lookup, or dependency-injection setup. DTO collections remain mutable; statelessness does not mean immutable DTOs or that streaming requires no accumulation.
