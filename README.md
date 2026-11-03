@@ -11,6 +11,8 @@ Unified AI models and conversions to and from the reusable Responses, Chat Compl
 - Implementation helpers stay private/internal. There are no friend assemblies. The only additional public conversion introduced by extraction is normalized `AIUsage` → `ChatCompletionUsage`; legacy/raw adapters stay internal to the backend.
 - MCP content/result types require `ModelContextProtocol.Core`. Some existing contract projects also depend on MCP ASP.NET Core packages transitively; extraction does not change those dependencies.
 
+For Vercel file parts, string payloads (including JSON strings) are preserved verbatim, not inferred to be base64: ordinary text and relative references can also be valid base64. Supply a complete Data URL or use `byte[]`, `Memory<byte>`, or `ReadOnlyMemory<byte>` to explicitly encode binary content as a Data URL.
+
 ## Stateless streaming
 
 There is no global or ambient request state, session store, provider lookup, or dependency-injection setup. DTO collections remain mutable; statelessness does not mean immutable DTOs or that streaming requires no accumulation.
