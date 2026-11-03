@@ -129,7 +129,11 @@ public static partial class ChatCompletionsUnifiedMapper
         "created",
         "model",
         "choices",
-        "usage"
+        "usage",
+        "service_tier",
+        "system_fingerprint",
+        "metadata",
+        "moderation"
     ];
 
     private static readonly HashSet<string> KnownChatCompletionStreamFields =
@@ -286,8 +290,13 @@ public static partial class ChatCompletionsUnifiedMapper
     {
         var additional = new Dictionary<string, JsonElement>(StringComparer.OrdinalIgnoreCase);
 
-        if (request.MaxOutputTokens is int maxTokens)
-            additional["max_tokens"] = JsonSerializer.SerializeToElement(maxTokens, Json);
+        var raw = ExtractMetadataElement(request.Metadata, "chatcompletions.request.raw");
+        if (raw is { ValueKind: JsonValueKind.Object })
+        {
+            var native = raw.Value.ReadChatContract<ChatCompletionOptions>();
+            foreach (var property in native.AdditionalProperties ?? [])
+                additional[property.Key] = property.Value.Clone();
+        }
 
         return additional.Count > 0 ? additional : null;
     }

@@ -104,12 +104,16 @@ public static partial class MessagesUnifiedMapper
         }];
 
         var systemFromInput = ToSystemContent(inputItems, providerId);
+        var storedSystem = ExtractObject<MessagesContent>(metadata, "messages.request.system");
         var system = systemFromInput
-                     ?? (!string.IsNullOrWhiteSpace(request.Instructions) ? new MessagesContent(request.Instructions) : null);
+                     ?? (storedSystem is not null && request.Instructions == FlattenContentText(storedSystem)
+                         ? storedSystem
+                         : !string.IsNullOrWhiteSpace(request.Instructions) ? new MessagesContent(request.Instructions) : null);
 
-        var metadataObj = JsonSerializer.Deserialize<MessagesRequestMetadata>(
-            JsonSerializer.Serialize(metadata, JsonSerializerOptions.Web)
-        );
+        var metadataObj = metadata.ContainsKey("messages.request.metadata")
+            ? ExtractObject<MessagesRequestMetadata>(metadata, "messages.request.metadata")
+            : JsonSerializer.Deserialize<MessagesRequestMetadata>(
+                JsonSerializer.Serialize(metadata, JsonSerializerOptions.Web));
 
         var providerTools = request.Metadata?
                    .GetMessageToolDefinitions(providerId)
@@ -126,9 +130,14 @@ public static partial class MessagesUnifiedMapper
             .. request.Metadata?.GetMessageToolDefinitions(providerId) ?? []];
 
         var container = request.Metadata?
-            .GetProviderOption<JsonElement>(providerId, "container");
+            .GetProviderOption<JsonElement?>(providerId, "container")
+            ?? ExtractObject<JsonElement?>(metadata, "messages.request.container");
 
-        var outputConfig = ExtractObject<MessagesOutputConfig>(metadata, "output_config");
+        var sourceOutputConfig = request.Metadata?.GetProviderOption<MessagesOutputConfig>(providerId, "output_config")
+            ?? ExtractObject<MessagesOutputConfig>(metadata, "output_config")
+            ?? ExtractObject<MessagesOutputConfig>(metadata, "messages.request.output_config");
+        var outputConfig = sourceOutputConfig is null ? null
+            : JsonSerializer.SerializeToElement(sourceOutputConfig, Json).Deserialize<MessagesOutputConfig>(Json);
         if (request.ResponseFormat is not null)
         {
             outputConfig ??= new();
@@ -156,14 +165,16 @@ public static partial class MessagesUnifiedMapper
                 ?? throw new ArgumentException("Messages requires max_tokens. Set MaxOutputTokens or the provider's max_tokens option.", nameof(request)),
             Messages = messages,
             CacheControl = request.Metadata?
-                .GetProviderOption<CacheControlEphemeral>(providerId, "cache_control"),
+                .GetProviderOption<CacheControlEphemeral>(providerId, "cache_control")
+                ?? ExtractObject<CacheControlEphemeral>(metadata, "messages.request.cache_control"),
             Container = container is JsonElement je
                     ? HasSkills(je)
                         ? je.Clone()
                         : ToContainerId(je)
                     : null,
             InferenceGeo = request.Metadata?
-                .GetProviderOption<string>(providerId, "inference_geo"),
+                .GetProviderOption<string>(providerId, "inference_geo")
+                ?? ExtractValue<string>(metadata, "messages.request.inference_geo"),
             Metadata = metadataObj,
             ContextManagement = request.Metadata?
                 .GetProviderOption<MessagesContextManagementConfig>(providerId, "context_management")
@@ -173,13 +184,15 @@ public static partial class MessagesUnifiedMapper
                 ?? ExtractObject<MessagesCompactionConfig>(metadata, "messages.request.compaction"),
             OutputConfig = outputConfig,
             ServiceTier = request.Metadata?
-                .GetProviderOption<string>(providerId, "service_tier"),
+                .GetProviderOption<string>(providerId, "service_tier")
+                ?? ExtractValue<string>(metadata, "messages.request.service_tier"),
             StopSequences = ExtractObject<List<string>>(metadata, "messages.request.stop_sequences"),
             Stream = request.Stream,
             System = system,
             Temperature = request.Temperature,
             Thinking = request.Metadata?
-                .GetProviderOption<MessagesThinkingConfig>(providerId, "thinking"),
+                .GetProviderOption<MessagesThinkingConfig>(providerId, "thinking")
+                ?? ExtractObject<MessagesThinkingConfig>(metadata, "messages.request.thinking"),
             ToolChoice = ToMessageToolChoice(request.ToolChoice, request.ParallelToolCalls),
             Tools = tools,
             TopK = ExtractValue<int?>(metadata, "messages.request.top_k"),

@@ -109,10 +109,29 @@ public static partial class ChatCompletionsUnifiedMapper
                             continue;
                         }
 
+                        var payload = type is "image_url" or "input_audio" or "file"
+                            && part.TryGetProperty(type, out var nativePayload)
+                            && nativePayload.ValueKind == JsonValueKind.Object
+                                ? nativePayload : default;
+                        var mediaType = type switch
+                        {
+                            "image_url" => "image/*",
+                            "input_audio" => ExtractValue<string>(payload, "format") == "mp3" ? "audio/mpeg" : "audio/wav",
+                            _ => "application/json"
+                        };
+                        object? data = type switch
+                        {
+                            "image_url" => ExtractValue<string>(payload, "url"),
+                            "input_audio" => ExtractValue<string>(payload, "data"),
+                            "file" => ExtractValue<string>(payload, "file_data") ?? ExtractValue<string>(payload, "file_id"),
+                            _ => null
+                        };
+
                         yield return new AIFileContentPart
                         {
-                            MediaType = "application/json",
-                            Data = part.Clone(),
+                            MediaType = mediaType,
+                            Filename = ExtractValue<string>(payload, "filename"),
+                            Data = data ?? (object)part.Clone(),
                             Type = "file",
                             Metadata = new Dictionary<string, object?>
                             {
@@ -172,7 +191,7 @@ public static partial class ChatCompletionsUnifiedMapper
             {
                 Name = name,
                 Description = ExtractValue<string>(source, "description"),
-                InputSchema = source.TryGetProperty("parameters", out var parameters) ? parameters.Clone() : null,
+                InputSchema = source.ValueKind == JsonValueKind.Object && source.TryGetProperty("parameters", out var parameters) ? parameters.Clone() : null,
                 Metadata = new Dictionary<string, object?>
                 {
                     ["chatcompletions.tool.raw"] = tool.Clone(),
@@ -222,6 +241,13 @@ public static partial class ChatCompletionsUnifiedMapper
         foreach (var item in input.Items)
         {
             var toolParts = (item.Content ?? []).OfType<AIToolCallContentPart>().ToList();
+            var nativeMessage = ExtractMetadataElement(item.Metadata, "chatcompletions.message.raw")
+                is { ValueKind: JsonValueKind.Object } rawMessage
+                    ? rawMessage.ReadChatContract<ChatMessage>() : null;
+            var hasNativeMessageProperties = nativeMessage is not null
+                && (nativeMessage.Name is not null || nativeMessage.Refusal is not null
+                    || nativeMessage.Audio is not null || nativeMessage.FunctionCall is not null
+                    || nativeMessage.AdditionalProperties is { Count: > 0 });
 
             if (string.Equals(item.Type, "function_call_output", StringComparison.OrdinalIgnoreCase))
             {
@@ -234,6 +260,8 @@ public static partial class ChatCompletionsUnifiedMapper
                         Role = "tool",
                         ToolCallId = toolPart.ToolCallId,
                         Content = SerializeJsonElement(ToolOutputToChatContent(toolPart) ?? string.Empty),
+                        Name = nativeMessage?.Name,
+                        AdditionalProperties = nativeMessage?.AdditionalProperties
                     });
                 }
 
@@ -255,7 +283,8 @@ public static partial class ChatCompletionsUnifiedMapper
 
             var toolCallId = ExtractMetadataValue<string>(item.Metadata, "chatcompletions.message.tool_call_id");
 
-            if (ShouldMergeUserMessageWithPending(pendingRole, pendingParts, role, nonToolParts, toolParts, toolCalls, toolCallId))
+            if (!hasNativeMessageProperties
+                && ShouldMergeUserMessageWithPending(pendingRole, pendingParts, role, nonToolParts, toolParts, toolCalls, toolCallId))
             {
                 pendingParts.AddRange(nonToolParts);
                 continue;
@@ -263,7 +292,8 @@ public static partial class ChatCompletionsUnifiedMapper
 
             FlushPending();
 
-            if (ShouldStartPendingUserMessage(role, nonToolParts, toolParts, toolCalls, toolCallId))
+            if (!hasNativeMessageProperties
+                && ShouldStartPendingUserMessage(role, nonToolParts, toolParts, toolCalls, toolCallId))
             {
                 pendingRole = role;
                 pendingParts.AddRange(nonToolParts);
@@ -275,7 +305,12 @@ public static partial class ChatCompletionsUnifiedMapper
                 Role = role,
                 Content = content,
                 ToolCallId = toolCallId,
-                ToolCalls = toolCalls
+                ToolCalls = toolCalls,
+                Name = nativeMessage?.Name,
+                Refusal = nativeMessage?.Refusal,
+                Audio = nativeMessage?.Audio,
+                FunctionCall = nativeMessage?.FunctionCall,
+                AdditionalProperties = nativeMessage?.AdditionalProperties
             });
 
             foreach (var toolPart in toolParts.Where(a => a.IsClientToolCall && HasToolOutput(a)))
@@ -330,7 +365,8 @@ public static partial class ChatCompletionsUnifiedMapper
         if (enforceFlatContent)
             return ToFlatChatMessageContent(list, role);
 
-        if (list.Count == 1 && list[0] is AITextContentPart textOnly)
+        if (list.Count == 1 && list[0] is AITextContentPart textOnly
+            && ExtractMetadataElement(textOnly.Metadata, "chatcompletions.part.raw") is not { ValueKind: JsonValueKind.Object })
             return JsonSerializer.SerializeToElement(textOnly.Text, Json);
 
         var mapped = new List<object>();
@@ -339,13 +375,26 @@ public static partial class ChatCompletionsUnifiedMapper
         {
             if (part is AITextContentPart text)
             {
-                mapped.Add(new { type = "text", text = text.Text });
+                if (ExtractMetadataElement(text.Metadata, "chatcompletions.part.raw") is { ValueKind: JsonValueKind.Object } rawText)
+                {
+                    var nativeText = rawText.ReadChatContract<ChatMessageTextPart>();
+                    nativeText.Text = text.Text;
+                    mapped.Add(nativeText);
+                }
+                else
+                    mapped.Add(new { type = "text", text = text.Text });
                 continue;
             }
 
             if (part is AIFileContentPart file
                 && string.Equals(role, "user", StringComparison.OrdinalIgnoreCase))
             {
+                if (ExtractMetadataElement(file.Metadata, "chatcompletions.part.raw") is { ValueKind: JsonValueKind.Object } rawPart)
+                {
+                    mapped.Add(rawPart);
+                    continue;
+                }
+
                 if (file.MediaType?.StartsWith("image/", StringComparison.OrdinalIgnoreCase) == true)
                 {
                     mapped.Add(new
@@ -501,6 +550,8 @@ public static partial class ChatCompletionsUnifiedMapper
                 && functionEl.ValueKind == JsonValueKind.Object
                 ? functionEl
                 : default;
+            var custom = toolCall.TryGetProperty("custom", out var customEl)
+                && customEl.ValueKind == JsonValueKind.Object ? customEl : default;
             var hasOutput = function.ValueKind == JsonValueKind.Object
                 && function.TryGetProperty("output", out _);
 
@@ -508,9 +559,11 @@ public static partial class ChatCompletionsUnifiedMapper
             {
                 Type = "tool-call",
                 ToolCallId = ExtractValue<string>(toolCall, "id") ?? Guid.NewGuid().ToString("N"),
-                ToolName = ExtractValue<string>(function, "name"),
-                Title = ExtractValue<string>(function, "name"),
-                Input = ParseToolArguments(ExtractValue<string>(function, "arguments")),
+                ToolName = ExtractValue<string>(function, "name") ?? ExtractValue<string>(custom, "name"),
+                Title = ExtractValue<string>(function, "name") ?? ExtractValue<string>(custom, "name"),
+                Input = custom.ValueKind == JsonValueKind.Object
+                    ? ExtractValue<string>(custom, "input")
+                    : ParseToolArguments(ExtractValue<string>(function, "arguments")),
                 Output = hasOutput ? function.GetProperty("output").Clone() : null,
                 State = hasOutput ? "output-available" : "input-available",
                 ProviderExecuted = ExtractValue<bool?>(toolCall, "provider_executed")

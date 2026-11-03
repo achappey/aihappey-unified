@@ -1161,7 +1161,10 @@ public static partial class InteractionsUnifiedMapper
             {
                 Index = index,
                 EventId = ExtractValue<string>(streamEvent.Metadata, "interactions.event_id"),
-                Step = new InteractionThoughtStep()
+                Step = new InteractionThoughtStep
+                {
+                    Signature = DeserializeFromObject<AIReasoningStartEventData>(envelope.Data)?.Signature
+                }
             },
             "reasoning-delta" => new InteractionStepDeltaEvent
             {
@@ -1189,10 +1192,7 @@ public static partial class InteractionsUnifiedMapper
             "finish" => new InteractionCompletedEvent
             {
                 EventId = ExtractValue<string>(streamEvent.Metadata, "interactions.event_id"),
-                Interaction = DeserializeFromObject<Interaction>(DeserializeFromObject<AIFinishEventData>(envelope.Data)?.Response)
-                              ?? (envelope.Data is AIFinishEventData finish && finish.Model is not null
-                                  ? new Interaction { Model = finish.Model, Status = finish.FinishReason is null ? (InteractionStatus?)null : new InteractionStatus(finish.FinishReason) }
-                                  : new Interaction())
+                Interaction = ToCompletedInteraction(DeserializeFromObject<AIFinishEventData>(envelope.Data))
             },
             "error" => new InteractionErrorEvent
             {
@@ -1209,6 +1209,29 @@ public static partial class InteractionsUnifiedMapper
             }
         };
     }
+
+    private static Interaction ToCompletedInteraction(AIFinishEventData? finish)
+        => DeserializeFromObject<Interaction>(finish?.Response) ?? new Interaction
+        {
+            Model = finish?.Model,
+            Status = finish?.FinishReason is { } reason ? new InteractionStatus(reason switch
+            {
+                "stop" => "completed",
+                "tool-calls" => "requires_action",
+                "error" => "failed",
+                "length" or "content-filter" => "incomplete",
+                _ => reason
+            }) : (InteractionStatus?)null,
+            Usage = finish is not null
+                && (finish.InputTokens is not null || finish.OutputTokens is not null || finish.TotalTokens is not null)
+                ? new InteractionUsage
+                {
+                    TotalInputTokens = finish.InputTokens,
+                    TotalOutputTokens = finish.OutputTokens,
+                    TotalTokens = finish.TotalTokens ?? (finish.InputTokens is not null && finish.OutputTokens is not null
+                        ? finish.InputTokens + finish.OutputTokens : null)
+                } : null
+        };
 
     private static AIStreamEvent CreateStreamEvent(string providerId, AIEventEnvelope envelope, InteractionStreamEventPart source, int index)
         => new()

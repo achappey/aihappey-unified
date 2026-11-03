@@ -13,10 +13,13 @@ public static partial class ChatCompletionsUnifiedMapper
 
         var raw = JsonSerializer.SerializeToElement(request, Json);
 
-        return raw.ToUnifiedRequest(providerId);
+        return ToUnifiedRequest(raw, providerId, request.Headers);
     }
 
     public static AIRequest ToUnifiedRequest(this JsonElement request, string providerId)
+        => ToUnifiedRequest(request, providerId, null);
+
+    private static AIRequest ToUnifiedRequest(JsonElement request, string providerId, Dictionary<string, string>? headers)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(providerId);
 
@@ -49,7 +52,7 @@ public static partial class ChatCompletionsUnifiedMapper
                     ["chatcompletions.input.raw_messages"] = msgEl.ValueKind == JsonValueKind.Array ? msgEl.Clone() : null
                 }
             },
-            Temperature = ExtractValue<float?>(request, "temperature"),
+            Temperature = ExtractValue<double?>(request, "temperature"),
             TopP = ExtractValue<double?>(request, "top_p"),
             MaxOutputTokens = ExtractValue<int?>(request, "max_completion_tokens") ?? ExtractValue<int?>(request, "max_tokens"),
             Stream = ExtractValue<bool?>(request, "stream"),
@@ -57,6 +60,8 @@ public static partial class ChatCompletionsUnifiedMapper
             ToolChoice = request.TryGetProperty("tool_choice", out var toolChoiceEl) ? toolChoiceEl.Clone() : null,
             ResponseFormat = request.TryGetProperty("response_format", out var responseFormatEl) ? responseFormatEl.Clone() : null,
             Tools = tools,
+            Verbosity = ExtractValue<string>(request, "verbosity"),
+            Headers = headers,
             Metadata = metadata
         };
     }
@@ -75,6 +80,10 @@ public static partial class ChatCompletionsUnifiedMapper
 
         var messages = ToChatMessages(request.Input, enforceFlatContent).ToList();
         var streamOptions = ExtractMetadataElement(request.Metadata, "chatcompletions.request.stream_options");
+        var native = ExtractMetadataElement(request.Metadata, "chatcompletions.request.raw")
+            is { ValueKind: JsonValueKind.Object } raw
+                ? raw.ReadChatContract<ChatCompletionOptions>()
+                : null;
 
         if (!string.IsNullOrWhiteSpace(request.Instructions))
             messages.Insert(0, new ChatMessage()
@@ -96,6 +105,32 @@ public static partial class ChatCompletionsUnifiedMapper
         {
             Model = request.Model ?? string.Empty,
             Temperature = request.Temperature,
+            TopP = request.TopP,
+            MaxCompletionTokens = native?.MaxCompletionTokens is not null ? request.MaxOutputTokens : null,
+            MaxTokens = native?.MaxCompletionTokens is null ? request.MaxOutputTokens : native.MaxTokens,
+            NumberOfChoices = native?.NumberOfChoices,
+            Stop = native?.Stop,
+            FrequencyPenalty = native?.FrequencyPenalty,
+            PresencePenalty = native?.PresencePenalty,
+            LogitBias = native?.LogitBias,
+            Logprobs = native?.Logprobs,
+            TopLogprobs = native?.TopLogprobs,
+            Seed = native?.Seed,
+            ServiceTier = native?.ServiceTier,
+            Modalities = native?.Modalities,
+            Verbosity = request.Verbosity ?? native?.Verbosity,
+            Audio = native?.Audio,
+            Prediction = native?.Prediction,
+            ReasoningEffort = native?.ReasoningEffort,
+            WebSearchOptions = native?.WebSearchOptions,
+            SafetyIdentifier = native?.SafetyIdentifier,
+            PromptCacheKey = native?.PromptCacheKey,
+            PromptCacheRetention = native?.PromptCacheRetention,
+            PromptCacheOptions = native?.PromptCacheOptions,
+            Moderation = native?.Moderation,
+            User = native?.User,
+            Functions = native?.Functions,
+            FunctionCall = native?.FunctionCall,
             ParallelToolCalls = request.ParallelToolCalls,
             Stream = request.Stream,
             Messages = messages,

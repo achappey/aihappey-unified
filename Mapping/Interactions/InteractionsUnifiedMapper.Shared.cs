@@ -7,6 +7,23 @@ namespace AIHappey.Interactions.Mapping;
 
 public static partial class InteractionsUnifiedMapper
 {
+    private static Dictionary<string, object?> CaptureInteractionMetadata<T>(
+        T source,
+        Dictionary<string, object?>? metadata,
+        Dictionary<string, JsonElement>? additionalProperties,
+        string prefix)
+    {
+        var result = metadata?.ToDictionary(entry => entry.Key, entry => entry.Value) ?? [];
+        result[$"{prefix}.metadata"] = metadata?.ToDictionary(entry => entry.Key, entry => entry.Value);
+        result[$"{prefix}.additional_properties"] = additionalProperties;
+        foreach (var property in JsonSerializer.SerializeToElement(source, Json).EnumerateObject())
+        {
+            if (property.Name is not ("steps" or "metadata"))
+                result[$"{prefix}.{property.Name}"] = property.Value.Clone();
+        }
+        return result;
+    }
+
     /// <summary>Mutable state owned by one Interactions stream; never share between streams.</summary>
     public sealed class InteractionStreamMappingState : IDisposable
     {

@@ -109,6 +109,8 @@ public static partial class MessagesUnifiedMapper
             Title = tool.Name,
             Description = tool.Description,
             InputSchema = tool.InputSchema,
+            DeferLoading = tool.DeferLoading,
+            AllowedCallers = tool.AllowedCallers,
             Metadata = new Dictionary<string, object?>
             {
                 ["messages.tool.raw"] = JsonSerializer.SerializeToElement(tool, Json),

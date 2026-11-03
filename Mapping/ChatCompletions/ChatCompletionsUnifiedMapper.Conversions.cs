@@ -17,6 +17,17 @@ public static partial class ChatCompletionsUnifiedMapper
             preserved.PromptTokens = usage.InputTokens ?? preserved.PromptTokens;
             preserved.CompletionTokens = usage.OutputTokens ?? preserved.CompletionTokens;
             preserved.TotalTokens = usage.TotalTokens ?? preserved.TotalTokens;
+            if (usage.CachedInputTokens is not null || usage.CacheWriteInputTokens is not null)
+            {
+                preserved.PromptTokensDetails ??= new ChatCompletionPromptTokenDetails();
+                preserved.PromptTokensDetails.CachedTokens = usage.CachedInputTokens ?? preserved.PromptTokensDetails.CachedTokens;
+                preserved.PromptTokensDetails.CacheWriteTokens = usage.CacheWriteInputTokens ?? preserved.PromptTokensDetails.CacheWriteTokens;
+            }
+            if (usage.ReasoningTokens is not null)
+            {
+                preserved.CompletionTokensDetails ??= new ChatCompletionCompletionTokenDetails();
+                preserved.CompletionTokensDetails.ReasoningTokens = usage.ReasoningTokens;
+            }
             return preserved;
         }
 

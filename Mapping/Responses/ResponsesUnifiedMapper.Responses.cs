@@ -25,7 +25,7 @@ public static partial class ResponsesUnifiedMapper
             Status = response.Status,
             Usage = ToUnifiedUsage(response.Usage),
             Output = outputItems.Count > 0 ? new AIOutput { Items = outputItems } : null,
-            Metadata = responseMetadata,
+            Metadata = CaptureResponseMetadata(response, responseMetadata, response.AdditionalProperties),
         };
     }
 
@@ -51,7 +51,9 @@ public static partial class ResponsesUnifiedMapper
             Status = response.Status,
             ParallelToolCalls = ExtractValue<bool?>(metadata, "responses.parallel_tool_calls"),
             Model = response.Model ?? "unknown",
-            Temperature = ExtractValue<float?>(metadata, "responses.temperature"),
+            Temperature = ExtractValue<double?>(metadata, "responses.temperature"),
+            TopP = ExtractValue<double?>(metadata, "responses.top_p"),
+            TopLogprobs = ExtractValue<int?>(metadata, "responses.top_logprobs"),
             Usage = ToResponseUsage(response.Usage),
             Output = ToResponseOutputObjects(response.Output, response.ProviderId, response.Status).ToList(),
             Text = ExtractObject<object>(metadata, "responses.text"),
@@ -60,9 +62,30 @@ public static partial class ResponsesUnifiedMapper
             Reasoning = ExtractObject<object>(metadata, "responses.reasoning"),
             Store = ExtractValue<bool?>(metadata, "responses.store"),
             MaxOutputTokens = ExtractValue<int?>(metadata, "responses.max_output_tokens"),
+            MaxToolCalls = ExtractValue<int?>(metadata, "responses.max_tool_calls"),
+            PreviousResponseId = ExtractValue<string>(metadata, "responses.previous_response_id"),
+            Background = ExtractValue<bool?>(metadata, "responses.background"),
+            User = ExtractValue<string>(metadata, "responses.user"),
+            SafetyIdentifier = ExtractValue<string>(metadata, "responses.safety_identifier"),
+            Instructions = ExtractValue<string>(metadata, "responses.instructions"),
+            Prompt = ExtractObject<object>(metadata, "responses.prompt"),
+            PromptCacheKey = ExtractValue<string>(metadata, "responses.prompt_cache_key"),
+            PromptCacheRetention = ExtractValue<string>(metadata, "responses.prompt_cache_retention"),
+            Truncation = ExtractValue<string>(metadata, "responses.truncation"),
+            AccessPrograms = ExtractObject<JsonElement?>(metadata, "responses.access_programs"),
+            OutputText = ExtractValue<string>(metadata, "responses.output_text"),
+            IncompleteDetails = ExtractObject<JsonElement?>(metadata, "responses.incomplete_details"),
+            ToolUsage = ExtractObject<JsonElement?>(metadata, "responses.tool_usage"),
+            PromptCacheOptions = ExtractObject<JsonElement?>(metadata, "responses.prompt_cache_options"),
+            PromptCacheDiagnostics = ExtractObject<JsonElement?>(metadata, "responses.prompt_cache_diagnostics"),
+            Moderation = ExtractObject<JsonElement?>(metadata, "responses.moderation"),
+            Conversation = ExtractObject<JsonElement?>(metadata, "responses.conversation"),
+            AdditionalProperties = ExtractObject<Dictionary<string, JsonElement>>(metadata, "responses.additional_properties"),
             ServiceTier = ExtractValue<string>(metadata, "responses.service_tier"),
             Error = ExtractObject<ResponseResultError>(metadata, "responses.error"),
-            Metadata = AddRawUsageMetadata(response.Metadata, response.ProviderId, response.Usage)
+            Metadata = AddRawUsageMetadata(metadata.ContainsKey("responses.metadata")
+                ? ExtractObject<Dictionary<string, object?>>(metadata, "responses.metadata")
+                : response.Metadata, response.ProviderId, response.Usage)
         };
     }
 

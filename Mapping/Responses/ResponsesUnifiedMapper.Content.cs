@@ -5,7 +5,7 @@ namespace AIHappey.Responses.Mapping;
 
 public static partial class ResponsesUnifiedMapper
 {
-    private static IEnumerable<AIContentPart> ToUnifiedContentParts(ResponseMessageContent content)
+    private static IEnumerable<AIContentPart> ToUnifiedContentParts(ResponseMessageContent content, string providerId)
     {
         if (content.IsText && !string.IsNullOrWhiteSpace(content.Text))
         {
@@ -21,23 +21,28 @@ public static partial class ResponsesUnifiedMapper
             switch (part)
             {
                 case InputTextPart inputText:
-                    yield return new AITextContentPart { Type = "text", Text = inputText.Text, Metadata = new Dictionary<string, object?> { ["responses.type"] = "input_text" } };
+                    yield return new AITextContentPart { Type = "text", Text = inputText.Text, Metadata = new Dictionary<string, object?> { ["responses.type"] = "input_text", ["responses.prompt_cache_breakpoint"] = inputText.PromptCacheBreakpoint, ["responses.additional_properties"] = inputText.AdditionalProperties } };
                     break;
                 case OutputTextPart outputText:
-                    yield return new AITextContentPart { Type = "text", Text = outputText.Text, Metadata = new Dictionary<string, object?> { ["responses.type"] = "output_text", ["responses.annotations"] = outputText.Annotations } };
+                    yield return new AITextContentPart { Type = "text", Text = outputText.Text, Metadata = new Dictionary<string, object?> { ["responses.type"] = "output_text", ["responses.annotations"] = outputText.Annotations, ["responses.logprobs"] = outputText.Logprobs, ["responses.additional_properties"] = outputText.AdditionalProperties } };
+                    break;
+                case RefusalContentPart refusal:
+                    yield return new AITextContentPart { Type = "text", Text = refusal.Refusal, Metadata = new Dictionary<string, object?> { ["responses.type"] = "refusal", ["responses.additional_properties"] = refusal.AdditionalProperties } };
                     break;
                 case InputImagePart image:
                     yield return new AIFileContentPart
                     {
                         Type = "file",
-                        MediaType = GuessMediaType(image.ImageUrl),
+                        MediaType = GuessMediaType(image.ImageUrl) ?? "image/*",
                         Filename = image.FileId,
                         Data = image.ImageUrl,
                         Metadata = new Dictionary<string, object?>
                         {
                             ["responses.type"] = "input_image",
                             ["responses.detail"] = image.Detail,
-                            ["responses.file_id"] = image.FileId
+                            ["responses.file_id"] = image.FileId,
+                            ["responses.prompt_cache_breakpoint"] = image.PromptCacheBreakpoint,
+                            ["responses.additional_properties"] = image.AdditionalProperties
                         }
                     };
                     break;
@@ -52,7 +57,23 @@ public static partial class ResponsesUnifiedMapper
                         {
                             ["responses.type"] = "input_file",
                             ["responses.file_id"] = file.FileId,
-                            ["responses.file_url"] = file.FileUrl
+                            ["responses.file_url"] = file.FileUrl,
+                            ["responses.detail"] = file.Detail,
+                            ["responses.prompt_cache_breakpoint"] = file.PromptCacheBreakpoint,
+                            ["responses.additional_properties"] = file.AdditionalProperties
+                        }
+                    };
+                    break;
+                case ResponseUnknownContentPart unknown:
+                    yield return new AIFileContentPart
+                    {
+                        Type = "file",
+                        MediaType = "application/json",
+                        Data = JsonSerializer.SerializeToElement(unknown, Json),
+                        Metadata = new Dictionary<string, object?>
+                        {
+                            ["responses.raw_part"] = JsonSerializer.SerializeToElement(unknown, Json),
+                            ["responses.provider_id"] = providerId
                         }
                     };
                     break;
@@ -60,7 +81,7 @@ public static partial class ResponsesUnifiedMapper
         }
     }
 
-    private static IEnumerable<ResponseContentPart> ToResponsesContentParts(IEnumerable<AIContentPart>? parts, string? role)
+    private static IEnumerable<ResponseContentPart> ToResponsesContentParts(IEnumerable<AIContentPart>? parts, string? role, string providerId)
     {
         foreach (var part in parts ?? [])
         {
@@ -68,17 +89,31 @@ public static partial class ResponsesUnifiedMapper
             {
                 case AITextContentPart text:
                     {
-                        if (role == "assistant")
+                        if (ExtractValue<string>(text.Metadata, "responses.type") == "refusal")
+                        {
+                            yield return new RefusalContentPart
+                            {
+                                Refusal = text.Text,
+                                AdditionalProperties = ExtractObject<Dictionary<string, JsonElement>>(text.Metadata, "responses.additional_properties")
+                            };
+                        }
+                        else if (role == "assistant")
                         {
                             yield return new OutputTextPart
                             {
                                 Text = text.Text,
-                                Annotations = ExtractObject<object[]>(text.Metadata, "responses.annotations") ?? []
+                                Annotations = ExtractObject<object[]>(text.Metadata, "responses.annotations") ?? [],
+                                Logprobs = ExtractObject<JsonElement[]>(text.Metadata, "responses.logprobs"),
+                                AdditionalProperties = ExtractObject<Dictionary<string, JsonElement>>(text.Metadata, "responses.additional_properties")
                             };
                         }
                         else
                         {
-                            yield return new InputTextPart(text.Text);
+                            yield return new InputTextPart(text.Text)
+                            {
+                                PromptCacheBreakpoint = ExtractObject<object>(text.Metadata, "responses.prompt_cache_breakpoint"),
+                                AdditionalProperties = ExtractObject<Dictionary<string, JsonElement>>(text.Metadata, "responses.additional_properties")
+                            };
                         }
 
                         break;
@@ -86,6 +121,14 @@ public static partial class ResponsesUnifiedMapper
 
                 case AIFileContentPart file:
                     {
+                        if (ExtractObject<JsonElement?>(file.Metadata, "responses.raw_part") is { ValueKind: JsonValueKind.Object } rawPart)
+                        {
+                            if (ExtractValue<string>(file.Metadata, "responses.provider_id") == providerId)
+                                yield return rawPart.Deserialize<ResponseContentPart>(ResponseJson.Default)
+                                    ?? throw new JsonException("Could not deserialize preserved Responses content part.");
+                            break;
+                        }
+
                         if (role == "user")
                         {
                             if (file.MediaType?.StartsWith("image/") == true)
@@ -93,6 +136,10 @@ public static partial class ResponsesUnifiedMapper
                                 yield return new InputImagePart
                                 {
                                     ImageUrl = file.Data?.ToString(),
+                                    FileId = ExtractValue<string>(file.Metadata, "responses.file_id"),
+                                    Detail = ExtractValue<string>(file.Metadata, "responses.detail"),
+                                    PromptCacheBreakpoint = ExtractObject<object>(file.Metadata, "responses.prompt_cache_breakpoint"),
+                                    AdditionalProperties = ExtractObject<Dictionary<string, JsonElement>>(file.Metadata, "responses.additional_properties")
                                 };
                             }
                             else
@@ -103,7 +150,10 @@ public static partial class ResponsesUnifiedMapper
                                     Filename = file.Filename,
                                     FileId = ExtractValue<string>(file.Metadata, "responses.file_id"),
                                     FileData = dataText is not null && dataText.StartsWith("data:", StringComparison.OrdinalIgnoreCase) ? dataText : null,
-                                    FileUrl = dataText is not null && dataText.StartsWith("http", StringComparison.OrdinalIgnoreCase) ? dataText : ExtractValue<string>(file.Metadata, "responses.file_url")
+                                    Detail = ExtractValue<string>(file.Metadata, "responses.detail"),
+                                    PromptCacheBreakpoint = ExtractObject<object>(file.Metadata, "responses.prompt_cache_breakpoint"),
+                                    FileUrl = dataText is not null && dataText.StartsWith("http", StringComparison.OrdinalIgnoreCase) ? dataText : ExtractValue<string>(file.Metadata, "responses.file_url"),
+                                    AdditionalProperties = ExtractObject<Dictionary<string, JsonElement>>(file.Metadata, "responses.additional_properties")
                                 };
                             }
                         }

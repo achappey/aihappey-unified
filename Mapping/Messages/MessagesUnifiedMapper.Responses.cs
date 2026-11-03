@@ -14,16 +14,22 @@ public static partial class MessagesUnifiedMapper
         var metadata = response.Metadata?.ToDictionary(
            kvp => kvp.Key,
            kvp => (object?)kvp.Value
-        );
-
+        ) ?? [];
         if (response.Usage is not null)
         {
-            metadata ??= [];
             var rawUsage = JsonSerializer.SerializeToElement(response.Usage, Json);
             metadata["messages.response.usage"] = rawUsage;
             var providerMetadata = ExtractObject<Dictionary<string, object?>>(metadata, providerId) ?? [];
             providerMetadata["usage"] = rawUsage;
             metadata[providerId] = providerMetadata;
+        }
+
+        metadata["messages.response.metadata"] = metadata.ToDictionary(entry => entry.Key, entry => entry.Value);
+        metadata["messages.response.unmapped"] = response.AdditionalProperties;
+        foreach (var property in JsonSerializer.SerializeToElement(response, Json).EnumerateObject())
+        {
+            if (property.Name is not ("content" or "metadata"))
+                metadata[$"messages.response.{property.Name}"] = property.Value.Clone();
         }
 
         return new AIResponse
@@ -45,7 +51,10 @@ public static partial class MessagesUnifiedMapper
         var role = ExtractValue<string>(metadata, "messages.response.role") ?? "assistant";
         var normalizedUsage = response.Usage as AIUsage;
 
-        var resultMetadata = response.Metadata?
+        var nativeMetadata = metadata.ContainsKey("messages.response.metadata")
+            ? ExtractObject<Dictionary<string, object?>>(metadata, "messages.response.metadata")
+            : response.Metadata;
+        var resultMetadata = nativeMetadata?
             .ToDictionary(
                 kvp => kvp.Key,
                 kvp => kvp.Value is JsonElement je
@@ -79,10 +88,30 @@ public static partial class MessagesUnifiedMapper
     {
         var messageContent = new List<AIContentPart>();
 
+        AIOutputItem TakeMessageContent()
+        {
+            var parts = messageContent.ToList();
+            messageContent.Clear();
+            return new AIOutputItem
+            {
+                Type = "message",
+                Role = response.Role ?? "assistant",
+                Content = parts,
+                Metadata = new Dictionary<string, object?>
+                {
+                    ["messages.output.role"] = response.Role,
+                    ["messages.output.raw_content"] = JsonSerializer.SerializeToElement(response.Content, Json)
+                }
+            };
+        }
+
         foreach (var block in response.Content ?? [])
         {
             if (TryCreateUnifiedToolCallPart(block, out var toolPart))
             {
+                if (messageContent.Count > 0)
+                    yield return TakeMessageContent();
+
                 yield return new AIOutputItem
                 {
                     Type = "message",
@@ -126,6 +155,9 @@ public static partial class MessagesUnifiedMapper
                     messageContent.Add(ToUnifiedFilePart(block));
                     break;
                 default:
+                    if (messageContent.Count > 0)
+                        yield return TakeMessageContent();
+
                     yield return new AIOutputItem
                     {
                         Type = block.Type,
@@ -141,19 +173,7 @@ public static partial class MessagesUnifiedMapper
         }
 
         if (messageContent.Count > 0)
-        {
-            yield return new AIOutputItem
-            {
-                Type = "message",
-                Role = response.Role ?? "assistant",
-                Content = messageContent,
-                Metadata = new Dictionary<string, object?>
-                {
-                    ["messages.output.role"] = response.Role,
-                    ["messages.output.raw_content"] = JsonSerializer.SerializeToElement(response.Content, Json)
-                }
-            };
-        }
+            yield return TakeMessageContent();
     }
 
     private static IEnumerable<MessageContentBlock> ToMessageContentBlocks(AIOutput? output, string? providerId)

@@ -16,12 +16,14 @@ public static partial class InteractionsUnifiedMapper
             Model = request.Model ?? request.Agent,
             Instructions = request.SystemInstruction,
             Input = request.Input is null ? null : ToUnifiedInput(request.Input, providerId),
+            Temperature = ExtractValue<double?>(request.GenerationConfig?.AdditionalProperties?.ToDictionary(p => p.Key, p => (object?)p.Value), "temperature"),
+            TopP = ExtractValue<double?>(request.GenerationConfig?.AdditionalProperties?.ToDictionary(p => p.Key, p => (object?)p.Value), "top_p"),
             MaxOutputTokens = request.GenerationConfig?.MaxOutputTokens,
             Stream = request.Stream,
             ToolChoice = CloneIfJsonElement(request.GenerationConfig?.ToolChoice),
             ResponseFormat = CloneIfJsonElement(request.ResponseFormat),
             Tools = request.Tools?.Select(ToUnifiedTool).ToList(),
-            Metadata = request.Metadata
+            Metadata = CaptureInteractionMetadata(request, request.Metadata, request.AdditionalProperties, "interactions.request")
         };
     }
 
@@ -33,12 +35,18 @@ public static partial class InteractionsUnifiedMapper
         var storedModel = ExtractValue<string>(metadata, "interactions.request.model");
         var storedAgent = ExtractValue<string>(metadata, "interactions.request.agent");
         var providerConfig = metadata.TryGetValue(providerId, out object? config) ? config.ToDictionary() : null;
-        var generationConfig = providerConfig != null ? ExtractObject<InteractionGenerationConfig>(providerConfig,
-            "generation_config") : new InteractionGenerationConfig();
-        generationConfig ??= new InteractionGenerationConfig();
+        var sourceGenerationConfig = providerConfig is null ? null
+            : ExtractObject<InteractionGenerationConfig>(providerConfig, "generation_config");
+        sourceGenerationConfig ??= ExtractObject<InteractionGenerationConfig>(metadata, "interactions.request.generation_config");
+        var generationConfig = sourceGenerationConfig is null ? new InteractionGenerationConfig()
+            : JsonSerializer.SerializeToElement(sourceGenerationConfig, Json).Deserialize<InteractionGenerationConfig>(Json)!;
 
         generationConfig.MaxOutputTokens = request.MaxOutputTokens ?? generationConfig.MaxOutputTokens;
         generationConfig.ToolChoice = DeserializeFromObject<InteractionToolChoiceValue>(request.ToolChoice) ?? generationConfig.ToolChoice;
+        if (request.Temperature is not null)
+            (generationConfig.AdditionalProperties ??= [])["temperature"] = JsonSerializer.SerializeToElement(request.Temperature, Json);
+        if (request.TopP is not null)
+            (generationConfig.AdditionalProperties ??= [])["top_p"] = JsonSerializer.SerializeToElement(request.TopP, Json);
         var providerResponseFormat = providerConfig is null
             ? ExtractObject<object>(metadata, "interactions.request.response_format")
             : ExtractObject<object>(providerConfig, "response_format")
@@ -64,7 +72,9 @@ public static partial class InteractionsUnifiedMapper
                 ? request.Model ?? storedModel
                 : storedModel,
             Agent = storedAgent,
-            Metadata = request.Metadata,
+            Metadata = metadata.ContainsKey("interactions.request.metadata")
+                ? ExtractObject<Dictionary<string, object?>>(metadata, "interactions.request.metadata")
+                : request.Metadata,
             Input = request.Input is null ? null : ToInteractionInput(request.Input, providerId),
             SystemInstruction = request.Instructions,
             Tools = requestTools.Count > 0 ? requestTools : null,
@@ -77,6 +87,11 @@ public static partial class InteractionsUnifiedMapper
                 ? null
                 : ExtractObject<InteractionAgentConfig>(metadata, "interactions.request.agent_config"),
             PreviousInteractionId = ExtractValue<string>(metadata, "interactions.request.previous_interaction_id"),
+            ContinuationToken = ExtractValue<string>(metadata, "interactions.request.continuation_token"),
+            Environment = ExtractObject<InteractionEnvironmentValue>(metadata, "interactions.request.environment"),
+            Labels = ExtractObject<Dictionary<string, string>>(metadata, "interactions.request.labels"),
+            SafetySettings = ExtractObject<List<InteractionSafetySetting>>(metadata, "interactions.request.safety_settings"),
+            WebhookConfig = ExtractObject<InteractionWebhookConfig>(metadata, "interactions.request.webhook_config"),
             ServiceTier = ExtractValue<string>(metadata, "interactions.request.service_tier"),
             AdditionalProperties = ExtractObject<Dictionary<string, JsonElement>>(metadata, "interactions.request.additional_properties")
         };

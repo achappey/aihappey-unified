@@ -8,6 +8,23 @@ public static partial class ResponsesUnifiedMapper
 {
     private const string CompactionToolName = "compaction";
 
+    private static Dictionary<string, object?> CaptureResponseMetadata<T>(
+        T source,
+        Dictionary<string, object?>? metadata,
+        Dictionary<string, JsonElement>? additionalProperties)
+    {
+        var result = metadata?.ToDictionary(entry => entry.Key, entry => entry.Value) ?? [];
+        result["responses.metadata"] = metadata?.ToDictionary(entry => entry.Key, entry => entry.Value);
+        result["responses.additional_properties"] = additionalProperties;
+        foreach (var property in JsonSerializer.SerializeToElement(source, Json).EnumerateObject())
+        {
+            if (property.Name is not ("input" or "output" or "metadata")
+                && property.Value.ValueKind is not (JsonValueKind.Null or JsonValueKind.Undefined))
+                result[$"responses.{property.Name}"] = property.Value.Clone();
+        }
+        return result;
+    }
+
     private static object? ParseJsonString(string? json)
     {
         if (string.IsNullOrWhiteSpace(json))

@@ -15,11 +15,13 @@ public static partial class ResponsesUnifiedMapper
         {
             ProviderId = providerId,
             Model = request.Model,
+            Id = request.PromptCacheKey,
             Instructions = request.Instructions,
             Input = request.Input is null ? null : ToUnifiedInput(request.Input, providerId),
             Temperature = request.Temperature,
             TopP = request.TopP,
             MaxOutputTokens = request.MaxOutputTokens,
+            MaxToolCalls = request.MaxToolCalls,
             Stream = request.Stream,
             ParallelToolCalls = request.ParallelToolCalls,
             ToolChoice = request.ToolChoice,
@@ -27,7 +29,7 @@ public static partial class ResponsesUnifiedMapper
             ResponseFormat = ToUnifiedResponseFormat(request.Text),
             Verbosity = ExtractResponsesVerbosity(request.Text),
             Headers = request.Headers,
-            Metadata = request.Metadata
+            Metadata = CaptureResponseMetadata(request, request.Metadata, request.AdditionalProperties)
         };
     }
 
@@ -139,25 +141,47 @@ public static partial class ResponsesUnifiedMapper
             Temperature = request.Temperature,
             TopP = request.TopP,
             MaxOutputTokens = request.MaxOutputTokens,
+            MaxToolCalls = request.MaxToolCalls,
             Stream = request.Stream,
             ParallelToolCalls = request.ParallelToolCalls,
             ToolChoice = request.ToolChoice,
             Tools = request.Tools?.Select(ToResponsesTool).ToList(),
             Headers = request.Headers,
             PromptCacheKey = request.Id,
-            Metadata = request.Metadata,
+            Metadata = metadata.ContainsKey("responses.metadata")
+                ? ExtractObject<Dictionary<string, object?>>(metadata, "responses.metadata")
+                : request.Metadata,
             Store = false,
             ServiceTier = ExtractValue<string>(metadata, "responses.service_tier"),
-            Text = new
-            {
-                format = ToResponsesTextFormat(request.ResponseFormat),
-                verbosity = request.Verbosity
-            },
+            Text = BuildResponsesText(request, metadata),
             PromptCacheOptions = ExtractObject<object>(metadata, "responses.prompt_cache_options"),
-            // Truncation = ParseTruncation(metadata, "responses.truncation"),
+            PromptCacheRetention = ExtractValue<string>(metadata, "responses.prompt_cache_retention"),
+            Truncation = ExtractEnum<TruncationStrategy>(metadata, "responses.truncation"),
+            PreviousResponseId = ExtractValue<string>(metadata, "responses.previous_response_id"),
+            Background = ExtractValue<bool?>(metadata, "responses.background"),
+            User = ExtractValue<string>(metadata, "responses.user"),
+            SafetyIdentifier = ExtractValue<string>(metadata, "responses.safety_identifier"),
+            TopLogprobs = ExtractValue<int?>(metadata, "responses.top_logprobs"),
+            Prompt = ExtractObject<object>(metadata, "responses.prompt"),
+            Include = ExtractObject<List<string>>(metadata, "responses.include"),
+            StreamOptions = ExtractObject<object>(metadata, "responses.stream_options"),
+            Moderation = ExtractObject<object>(metadata, "responses.moderation"),
+            Conversation = ExtractObject<object>(metadata, "responses.conversation"),
+            AccessPrograms = ExtractObject<object>(metadata, "responses.access_programs"),
+            AdditionalProperties = ExtractObject<Dictionary<string, JsonElement>>(metadata, "responses.additional_properties"),
             Reasoning = ExtractObject<Reasoning>(metadata, "responses.reasoning"),
             ContextManagement = ExtractObject<JsonElement[]>(metadata, "responses.context_management")
         };
+    }
+
+    private static object BuildResponsesText(AIRequest request, Dictionary<string, object?> metadata)
+    {
+        var text = ExtractObject<Dictionary<string, object?>>(metadata, "responses.text")
+            ?.ToDictionary(entry => entry.Key, entry => entry.Value) ?? [];
+        text["format"] = ToResponsesTextFormat(request.ResponseFormat);
+        if (request.Verbosity is not null)
+            text["verbosity"] = request.Verbosity;
+        return text;
     }
 
     private static AIInput ToUnifiedInput(ResponseInput input, string providerId)
@@ -218,7 +242,7 @@ public static partial class ResponsesUnifiedMapper
                     Type = "message",
                     Id = message.Id,
                     Role = message.Role.ToString().ToLowerInvariant(),
-                    Content = [.. ToUnifiedContentParts(message.Content)],
+                    Content = [.. ToUnifiedContentParts(message.Content, providerId)],
                     Metadata = messageMetadata
                 };
 
@@ -435,7 +459,16 @@ public static partial class ResponsesUnifiedMapper
                 };
 
             default:
-                return new AIInputItem { Type = item.Type ?? "item", Metadata = new Dictionary<string, object?> { ["raw"] = item } };
+                return new AIInputItem
+                {
+                    Type = item.Type ?? "item",
+                    Metadata = new Dictionary<string, object?>
+                    {
+                        ["raw"] = item,
+                        ["responses.raw_input_item"] = JsonSerializer.SerializeToElement(item, Json),
+                        ["responses.provider_id"] = providerId
+                    }
+                };
         }
     }
 
@@ -1015,10 +1048,18 @@ public static partial class ResponsesUnifiedMapper
                     yield break;
                 }
             default:
+                if (ExtractValue<string>(metadata, "responses.provider_id") == providerId
+                    && ExtractObject<JsonElement?>(metadata, "responses.raw_input_item") is { ValueKind: JsonValueKind.Object } preservedInput)
+                {
+                    yield return preservedInput.Deserialize<ResponseInputItem>(ResponseJson.Default)
+                        ?? throw new JsonException("Could not deserialize preserved Responses input item.");
+                    yield break;
+                }
+
                 yield return new ResponseInputMessage
                 {
                     Role = ParseRole(item.Role),
-                    Content = new ResponseMessageContent(ToResponsesContentParts(nonToolParts, item.Role).ToList())
+                    Content = new ResponseMessageContent(ToResponsesContentParts(nonToolParts, item.Role, providerId).ToList())
                 };
                 yield break;
         }
@@ -1032,7 +1073,7 @@ public static partial class ResponsesUnifiedMapper
         => new()
         {
             Role = ParseRole(item.Role),
-            Content = new ResponseMessageContent(ToResponsesContentParts(parts, item.Role).ToList()),
+            Content = new ResponseMessageContent(ToResponsesContentParts(parts, item.Role, providerId).ToList()),
             // UI message IDs are transport UUIDs and are not valid native Responses
             // item IDs. Replay an ID only when provider metadata retained a native
             // message ID with the required msg_ prefix.

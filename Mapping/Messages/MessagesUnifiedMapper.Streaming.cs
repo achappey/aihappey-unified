@@ -332,10 +332,10 @@ public static partial class MessagesUnifiedMapper
                 {
                     yield return CreateEnvelope("reasoning-end", stopState.EventId, new AIReasoningEndEventData
                     {
-                        Signature = stopState.Signature,
+                        Signature = stopState.Signature ?? stopState.Block.Signature,
                         ProviderMetadata = CreateReasoningProviderMetadata(
                             providerId,
-                            signature: stopState.Signature,
+                            signature: stopState.Signature ?? stopState.Block.Signature,
                             encryptedContent: stopState.Block.Data)
                     });
                 }

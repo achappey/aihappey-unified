@@ -19,7 +19,7 @@ public static partial class InteractionsUnifiedMapper
             Status = response.Status?.Value,
             Usage = response.Usage,
             Output = outputItems.Count == 0 ? null : new AIOutput { Items = outputItems },
-            Metadata = response.Metadata
+            Metadata = CaptureInteractionMetadata(response, response.Metadata, response.AdditionalProperties, "interactions.response")
         };
     }
 
@@ -29,26 +29,47 @@ public static partial class InteractionsUnifiedMapper
 
         var metadata = response.Metadata ?? [];
         var outputSteps = CoalesceContentSteps(ToInteractionOutputSteps(response.Output)).ToList();
+        var storedModel = ExtractValue<string>(metadata, "interactions.response.model");
+        var storedAgent = ExtractValue<string>(metadata, "interactions.response.agent");
 
         return new Interaction
         {
             Id = ExtractValue<string>(metadata, "interactions.response.id") ?? Guid.NewGuid().ToString("N"),
             Object = ExtractValue<string>(metadata, "interactions.response.object") ?? "interaction",
-            Model = response.Model,
-            Agent = ExtractValue<string>(metadata, "interactions.response.agent"),
+            Model = string.IsNullOrWhiteSpace(storedAgent) || !string.IsNullOrWhiteSpace(storedModel)
+                ? response.Model ?? storedModel : storedModel,
+            Agent = storedAgent,
             Status = response.Status is null ? (InteractionStatus?)null : new InteractionStatus(response.Status),
             Created = ExtractValue<string>(metadata, "interactions.response.created"),
             Updated = ExtractValue<string>(metadata, "interactions.response.updated"),
             Steps = outputSteps.Count == 0 ? null : outputSteps,
-            Usage = DeserializeFromObject<InteractionUsage>(response.Usage),
+            Usage = response.Usage is AIUsage usage ? new InteractionUsage
+            {
+                TotalInputTokens = usage.InputTokens,
+                TotalOutputTokens = usage.OutputTokens,
+                TotalTokens = usage.TotalTokens ?? (usage.InputTokens is not null && usage.OutputTokens is not null
+                    ? usage.InputTokens + usage.OutputTokens : null),
+                TotalCachedTokens = usage.CachedInputTokens,
+                TotalThoughtTokens = usage.ReasoningTokens
+            } : DeserializeFromObject<InteractionUsage>(response.Usage),
             SystemInstruction = ExtractValue<string>(metadata, "interactions.response.system_instruction"),
             Tools = ExtractObject<List<InteractionTool>>(metadata, "interactions.response.tools"),
             ResponseFormat = ExtractObject<InteractionResponseFormats>(metadata, "interactions.response.response_format"),
             PreviousInteractionId = ExtractValue<string>(metadata, "interactions.response.previous_interaction_id"),
+            ContinuationToken = ExtractValue<string>(metadata, "interactions.response.continuation_token"),
+            Environment = ExtractObject<InteractionEnvironmentValue>(metadata, "interactions.response.environment"),
+            EnvironmentId = ExtractValue<string>(metadata, "interactions.response.environment_id"),
+            Errors = ExtractObject<List<InteractionErrorInfo>>(metadata, "interactions.response.errors"),
+            Labels = ExtractObject<Dictionary<string, string>>(metadata, "interactions.response.labels"),
+            SafetySettings = ExtractObject<List<InteractionSafetySetting>>(metadata, "interactions.response.safety_settings"),
+            WebhookConfig = ExtractObject<InteractionWebhookConfig>(metadata, "interactions.response.webhook_config"),
             ServiceTier = ExtractValue<string>(metadata, "interactions.response.service_tier"),
             Input = ExtractObject<InteractionsInput>(metadata, "interactions.response.input"),
             GenerationConfig = ExtractObject<InteractionGenerationConfig>(metadata, "interactions.response.generation_config"),
             AgentConfig = ExtractObject<InteractionAgentConfig>(metadata, "interactions.response.agent_config"),
+            Metadata = metadata.ContainsKey("interactions.response.metadata")
+                ? ExtractObject<Dictionary<string, object?>>(metadata, "interactions.response.metadata")
+                : response.Metadata,
             AdditionalProperties = ExtractObject<Dictionary<string, JsonElement>>(metadata, "interactions.response.additional_properties")
         };
     }
