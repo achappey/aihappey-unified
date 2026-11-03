@@ -74,16 +74,11 @@ public static class VercelUnifiedMapper
                     break;
 
                 case AIFileContentPart file:
-                    var data = file.Data?.ToString() ?? string.Empty;
-                    var base64 = data.Contains(',')
-                        ? data[(data.IndexOf(',') + 1)..]
-                        : data;
-
                     parts.Add(new FileUIPart
                     {
                         MediaType = file.MediaType ?? "application/octet-stream",
                         Filename = file.Filename,
-                        Url = base64 ?? string.Empty
+                        Url = ToVercelFileUrl(file)
                     });
                     break;
 
@@ -466,6 +461,40 @@ public static class VercelUnifiedMapper
         {
             return [];
         }
+    }
+
+    private static string ToVercelFileUrl(AIFileContentPart file)
+    {
+        var mediaType = file.MediaType ?? "application/octet-stream";
+        var data = file.Data switch
+        {
+            byte[] bytes => $"data:{mediaType};base64,{Convert.ToBase64String(bytes)}",
+            ReadOnlyMemory<byte> bytes => $"data:{mediaType};base64,{Convert.ToBase64String(bytes.Span)}",
+            Memory<byte> bytes => $"data:{mediaType};base64,{Convert.ToBase64String(bytes.Span)}",
+            JsonElement json when json.ValueKind == JsonValueKind.String => json.GetString(),
+            JsonElement json when json.ValueKind is JsonValueKind.Null or JsonValueKind.Undefined => null,
+            JsonElement json => json.GetRawText(),
+            string text => text,
+            Uri uri => uri.OriginalString,
+            null => null,
+            _ => JsonSerializer.Serialize(file.Data, Json)
+        };
+
+        if (string.IsNullOrEmpty(data)
+            || data.StartsWith("data:", StringComparison.OrdinalIgnoreCase)
+            || Uri.TryCreate(data, UriKind.Absolute, out _))
+        {
+            return data ?? string.Empty;
+        }
+
+        if (data.Length % 4 == 0)
+        {
+            var decoded = new byte[data.Length / 4 * 3];
+            if (Convert.TryFromBase64String(data, decoded, out var bytesWritten))
+                return $"data:{mediaType};base64,{Convert.ToBase64String(decoded.AsSpan(0, bytesWritten))}";
+        }
+
+        return data;
     }
 
     private static T? GetTypedData<T>(AIEventEnvelope envelope)
@@ -1641,4 +1670,3 @@ public static class VercelUnifiedMapper
     }
 
 }
-
