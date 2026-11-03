@@ -6,15 +6,21 @@ namespace AIHappey.Tests.ChatCompletions;
 
 public sealed class ChatCompletionsUnifiedMapperCompatibilityTests
 {
+
     [Theory]
     [InlineData(true)]
     [InlineData(false)]
     public void Chat_completion_request_roundtrip_preserves_stream_usage_option(bool includeUsage)
     {
-        var request = JsonSerializer.Deserialize<JsonElement>(
-            $$"""
-              {"model":"test-model","stream":true,"stream_options":{"include_usage":{{includeUsage.ToString().ToLowerInvariant()}}}}
-              """);
+        var request = JsonSerializer.SerializeToElement(new
+        {
+            model = "test-model",
+            stream = true,
+            stream_options = new
+            {
+                include_usage = includeUsage
+            }
+        });
 
         var options = request
             .ToUnifiedRequest("openai")
@@ -22,6 +28,7 @@ public sealed class ChatCompletionsUnifiedMapperCompatibilityTests
 
         Assert.Equal(includeUsage, options.StreamOptions?.IncludeUsage);
     }
+
 
     [Fact]
     public void Chat_completion_requests_without_stream_options_keep_the_existing_usage_default()

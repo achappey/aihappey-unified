@@ -2,6 +2,7 @@ using System.Text.Json;
 using AIHappey.Unified.Models;
 using AIHappey.Vercel.Mapping;
 using AIHappey.Vercel.Models;
+using AIHappey.Vercel.Extensions;
 
 namespace AIHappey.Tests.Vercel;
 
@@ -16,7 +17,9 @@ public sealed class FileMappingRegressionTests
         var message = new AIOutputItem
         {
             Role = "assistant",
-            Content = [new AIFileContentPart { MediaType = "image/png", Data = data }]
+            Content = [new AIFileContentPart {
+                Type = "file",
+                MediaType = "image/png", Data = data }]
         }.ToUIMessage();
 
         var file = Assert.IsType<FileUIPart>(Assert.Single(message.Parts));
@@ -47,7 +50,9 @@ public sealed class FileMappingRegressionTests
             var message = new AIOutputItem
             {
                 Role = "assistant",
-                Content = [new AIFileContentPart { MediaType = "image/png", Data = payload }]
+                Content = [new AIFileContentPart { 
+                     Type = "file",
+                    MediaType = "image/png", Data = payload }]
             }.ToUIMessage();
 
             var file = Assert.IsType<FileUIPart>(Assert.Single(message.Parts));
@@ -65,7 +70,9 @@ public sealed class FileMappingRegressionTests
             var message = new AIOutputItem
             {
                 Role = "assistant",
-                Content = [new AIFileContentPart { MediaType = "application/pdf", Data = payload }]
+                Content = [new AIFileContentPart { 
+                    Type = "file",
+                    MediaType = "application/pdf", Data = payload }]
             }.ToUIMessage();
 
             var file = Assert.IsType<FileUIPart>(Assert.Single(message.Parts));
@@ -83,6 +90,7 @@ public sealed class FileMappingRegressionTests
             Content = [new AIFileContentPart
             {
                 MediaType = "image/png",
+                Type = "file",
                 Data = JsonSerializer.SerializeToElement("data:image/png;base64,AQID")
             }]
         }.ToUIMessage();

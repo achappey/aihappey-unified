@@ -49,7 +49,7 @@ public static class VercelUnifiedMapper
         };
     }
 
-    public static UIMessage ToUIMessage(AIOutputItem item, string? id = null)
+    public static UIMessage ToUIMessage(this AIOutputItem item, string? id = null)
     {
         ArgumentNullException.ThrowIfNull(item);
 
