@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net11.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Description>Unified AI models and stateless mappings to reusable Responses, Chat Completions, Messages, Interactions, and Vercel contracts.</Description>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../aihappey-responses/AIHappey.Responses.csproj" />
+    <ProjectReference Include="../aihappey-chatcompletions/AIHappey.ChatCompletions.csproj" />
+    <ProjectReference Include="../aihappey-messages/AIHappey.Messages.csproj" />
+    <ProjectReference Include="../aihappey-interactions/AIHappey.Interactions.csproj" />
+    <ProjectReference Include="../aihappey-vercel/AIHappey.Vercel.csproj" />
+    <PackageReference Include="ModelContextProtocol.Core" Version="2.3.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="tests/**/*.cs" />
+    <None Include="README.md" Pack="true" PackagePath="/" />
+  </ItemGroup>
+</Project>

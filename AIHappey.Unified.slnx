@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="AIHappey.Unified.csproj" />
+  <Project Path="tests/AIHappey.Unified.Tests/AIHappey.Unified.Tests.csproj" />
+</Solution>

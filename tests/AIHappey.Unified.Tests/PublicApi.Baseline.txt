@@ -1,0 +1,636 @@
+AIHappey.ChatCompletions.Mapping.ChatCompletionsUnifiedMapper | Method | AIHappey.ChatCompletions.Models.ChatCompletion ToChatCompletion(AIHappey.Unified.Models.AIResponse) | response
+AIHappey.ChatCompletions.Mapping.ChatCompletionsUnifiedMapper | Method | AIHappey.ChatCompletions.Models.ChatCompletionOptions ToChatCompletionOptions(AIHappey.Unified.Models.AIRequest, System.String, Boolean) | request, providerId, enforceFlatContent=False
+AIHappey.ChatCompletions.Mapping.ChatCompletionsUnifiedMapper | Method | AIHappey.ChatCompletions.Models.ChatCompletionUpdate ToChatCompletionUpdate(AIHappey.Unified.Models.AIStreamEvent) | streamEvent
+AIHappey.ChatCompletions.Mapping.ChatCompletionsUnifiedMapper | Method | AIHappey.Unified.Models.AIRequest ToUnifiedRequest(AIHappey.ChatCompletions.Models.ChatCompletionOptions, System.String) | request, providerId
+AIHappey.ChatCompletions.Mapping.ChatCompletionsUnifiedMapper | Method | AIHappey.Unified.Models.AIRequest ToUnifiedRequest(System.Text.Json.JsonElement, System.String) | request, providerId
+AIHappey.ChatCompletions.Mapping.ChatCompletionsUnifiedMapper | Method | AIHappey.Unified.Models.AIResponse ToUnifiedResponse(AIHappey.ChatCompletions.Models.ChatCompletion, System.String) | response, providerId
+AIHappey.ChatCompletions.Mapping.ChatCompletionsUnifiedMapper | Method | AIHappey.Unified.Models.AIResponse ToUnifiedResponse(System.Text.Json.JsonElement, System.String) | response, providerId
+AIHappey.ChatCompletions.Mapping.ChatCompletionsUnifiedMapper | Method | AIHappey.Unified.Models.AIStreamEvent ToUnifiedStreamEvent(AIHappey.ChatCompletions.Models.ChatCompletionUpdate, System.String) | update, providerId
+AIHappey.ChatCompletions.Mapping.ChatCompletionsUnifiedMapper | Method | AIHappey.Unified.Models.AIStreamEvent ToUnifiedStreamEvent(System.Text.Json.JsonElement, System.String) | update, providerId
+AIHappey.ChatCompletions.Mapping.ChatCompletionsUnifiedMapper | Method | System.Collections.Generic.IEnumerable`1[AIHappey.Unified.Models.AIStreamEvent] FinalizeUnifiedStreamEvents(System.String, ChatCompletionsStreamMappingState, System.Nullable`1[System.DateTimeOffset]) | providerId, state, timestamp=null
+AIHappey.ChatCompletions.Mapping.ChatCompletionsUnifiedMapper | Method | System.Collections.Generic.IEnumerable`1[AIHappey.Unified.Models.AIStreamEvent] ToUnifiedStreamEvents(AIHappey.ChatCompletions.Models.ChatCompletionUpdate, System.String, ChatCompletionsStreamMappingState) | update, providerId, state=null
+AIHappey.ChatCompletions.Mapping.ChatCompletionsUnifiedMapper | Method | System.Collections.Generic.List`1[AIHappey.ChatCompletions.Models.ChatCompletionToolDefinition] GetChatCompletionToolDefinitions(System.Collections.Generic.Dictionary`2[System.String,System.Object], System.String) | metadata, providerId
+AIHappey.ChatCompletions.Mapping.ChatCompletionsUnifiedMapper | Method | Void ApplyProviderOptions(System.String, System.Collections.Generic.Dictionary`2[System.String,System.Object], System.Collections.Generic.IDictionary`2[System.String,System.Text.Json.JsonElement], System.Collections.Generic.HashSet`1[System.String]) | provider, metadata, additional, exclude=null
+AIHappey.ChatCompletions.Mapping.ChatCompletionsUnifiedMapper+ChatCompletionsStreamMappingState | Constructor | Void .ctor() | 
+AIHappey.Interactions.Mapping.InteractionsUnifiedMapper | Method | AIHappey.Interactions.Interaction ToInteraction(AIHappey.Unified.Models.AIResponse) | response
+AIHappey.Interactions.Mapping.InteractionsUnifiedMapper | Method | AIHappey.Interactions.InteractionRequest ToInteractionRequest(AIHappey.Unified.Models.AIRequest, System.String) | request, providerId
+AIHappey.Interactions.Mapping.InteractionsUnifiedMapper | Method | AIHappey.Interactions.InteractionStreamEventPart ToInteractionStreamEvent(AIHappey.Unified.Models.AIStreamEvent) | streamEvent
+AIHappey.Interactions.Mapping.InteractionsUnifiedMapper | Method | AIHappey.Unified.Models.AIRequest ToUnifiedRequest(AIHappey.Interactions.InteractionRequest, System.String) | request, providerId
+AIHappey.Interactions.Mapping.InteractionsUnifiedMapper | Method | AIHappey.Unified.Models.AIResponse ToUnifiedResponse(AIHappey.Interactions.Interaction, System.String) | response, providerId
+AIHappey.Interactions.Mapping.InteractionsUnifiedMapper | Method | AIHappey.Unified.Models.AIStreamEvent ToUnifiedRequestStreamEvent(AIHappey.Interactions.InteractionRequest, System.String, System.Collections.Generic.Dictionary`2[System.String,System.String]) | request, providerId, headers=null
+AIHappey.Interactions.Mapping.InteractionsUnifiedMapper | Method | System.Collections.Generic.Dictionary`2[System.String,System.Object] ToDictionary(System.Object) | obj
+AIHappey.Interactions.Mapping.InteractionsUnifiedMapper | Method | System.Collections.Generic.IAsyncEnumerable`1[AIHappey.Unified.Models.AIStreamEvent] ToUnifiedStreamEvents(System.Collections.Generic.IAsyncEnumerable`1[AIHappey.Interactions.InteractionStreamEventPart], System.String, System.Threading.CancellationToken) | parts, providerId, cancellationToken=null
+AIHappey.Interactions.Mapping.InteractionsUnifiedMapper | Method | System.Collections.Generic.IEnumerable`1[AIHappey.Unified.Models.AIStreamEvent] ToUnifiedStreamEvent(AIHappey.Interactions.InteractionStreamEventPart, System.String) | part, providerId
+AIHappey.Interactions.Mapping.InteractionsUnifiedMapper | Method | System.Collections.Generic.IEnumerable`1[AIHappey.Unified.Models.AIStreamEvent] ToUnifiedStreamEvent(AIHappey.Interactions.InteractionStreamEventPart, System.String, InteractionStreamMappingState) | part, providerId, mappingState
+AIHappey.Interactions.Mapping.InteractionsUnifiedMapper | Method | System.Collections.Generic.IEnumerable`1[AIHappey.Unified.Models.AIStreamEvent] ToUnifiedStreamEvents(System.Collections.Generic.IEnumerable`1[AIHappey.Interactions.InteractionStreamEventPart], System.String) | parts, providerId
+AIHappey.Interactions.Mapping.InteractionsUnifiedMapper | Method | System.String StripBase64Prefix(System.String) | input
+AIHappey.Interactions.Mapping.InteractionsUnifiedMapper+InteractionStreamMappingState | Constructor | Void .ctor() | 
+AIHappey.Interactions.Mapping.InteractionsUnifiedMapper+InteractionStreamMappingState | Method | Void Dispose() | 
+AIHappey.Messages.Mapping.MessagesUnifiedMapper | Method | AIHappey.Messages.MessageStreamPart ToMessageStreamPart(AIHappey.Unified.Models.AIStreamEvent, MessagesReverseStreamMappingState) | streamEvent, state=null
+AIHappey.Messages.Mapping.MessagesUnifiedMapper | Method | AIHappey.Messages.MessagesRequest ToMessagesRequest(AIHappey.Unified.Models.AIRequest, System.String) | request, providerId
+AIHappey.Messages.Mapping.MessagesUnifiedMapper | Method | AIHappey.Messages.MessagesResponse ToMessagesResponse(AIHappey.Unified.Models.AIResponse) | response
+AIHappey.Messages.Mapping.MessagesUnifiedMapper | Method | AIHappey.Unified.Models.AIRequest ToUnifiedRequest(AIHappey.Messages.MessagesRequest, System.String) | request, providerId
+AIHappey.Messages.Mapping.MessagesUnifiedMapper | Method | AIHappey.Unified.Models.AIResponse ToUnifiedResponse(AIHappey.Messages.MessagesResponse, System.String) | response, providerId
+AIHappey.Messages.Mapping.MessagesUnifiedMapper | Method | System.Collections.Generic.IAsyncEnumerable`1[AIHappey.Messages.MessageStreamPart] ToMessageStreamParts(System.Collections.Generic.IAsyncEnumerable`1[AIHappey.Unified.Models.AIStreamEvent], System.String, System.Threading.CancellationToken) | streamEvents, model=null, cancellationToken=null
+AIHappey.Messages.Mapping.MessagesUnifiedMapper | Method | System.Collections.Generic.IEnumerable`1[AIHappey.Unified.Models.AIStreamEvent] ToUnifiedStreamEvents(AIHappey.Messages.MessageStreamPart, System.String, MessagesStreamMappingState) | part, providerId, state=null
+AIHappey.Messages.Mapping.MessagesUnifiedMapper | Method | System.Collections.Generic.List`1[AIHappey.Messages.MessageToolDefinition] GetMessageToolDefinitions(AIHappey.Messages.MessagesRequestMetadata, System.String) | metadata, providerId
+AIHappey.Messages.Mapping.MessagesUnifiedMapper | Method | System.Collections.Generic.List`1[AIHappey.Messages.MessageToolDefinition] GetMessageToolDefinitions(System.Collections.Generic.Dictionary`2[System.String,System.Object], System.String) | metadata, providerId
+AIHappey.Messages.Mapping.MessagesUnifiedMapper | Method | System.String StripBase64Prefix(System.String) | value
+AIHappey.Messages.Mapping.MessagesUnifiedMapper | Method | T GetProviderOption[T](AIHappey.Messages.MessagesRequestMetadata, System.String, System.String) | metadata, providerId, key
+AIHappey.Messages.Mapping.MessagesUnifiedMapper | Method | T GetProviderOption[T](System.Collections.Generic.Dictionary`2[System.String,System.Object], System.String, System.String) | metadata, providerId, key
+AIHappey.Messages.Mapping.MessagesUnifiedMapper | Method | Void ApplyProviderOptions(System.String, System.Collections.Generic.Dictionary`2[System.String,System.Object], System.Collections.Generic.IDictionary`2[System.String,System.Text.Json.JsonElement], System.Collections.Generic.HashSet`1[System.String]) | provider, metadata, additional, exclude=null
+AIHappey.Messages.Mapping.MessagesUnifiedMapper+MessagesReverseStreamMappingState | Constructor | Void .ctor() | 
+AIHappey.Messages.Mapping.MessagesUnifiedMapper+MessagesStreamMappingState | Constructor | Void .ctor() | 
+AIHappey.Messages.Mapping.MessagesUsageExtensions | Method | AIHappey.Unified.Models.AIUsage ToUnifiedUsage(AIHappey.Messages.MessagesUsage) | usage
+AIHappey.Responses.Mapping.ResponsesUnifiedMapper | Method | AIHappey.Responses.ResponseRequest ToResponseRequest(AIHappey.Unified.Models.AIRequest, System.String) | request, providerId
+AIHappey.Responses.Mapping.ResponsesUnifiedMapper | Method | AIHappey.Responses.ResponseResult ToResponseResult(AIHappey.Unified.Models.AIResponse) | response
+AIHappey.Responses.Mapping.ResponsesUnifiedMapper | Method | AIHappey.Responses.Streaming.ResponseStreamPart ToResponseStreamPart(AIHappey.Unified.Models.AIStreamEvent, ResponseReverseStreamState) | streamEvent, state
+AIHappey.Responses.Mapping.ResponsesUnifiedMapper | Method | AIHappey.Unified.Models.AIRequest ToUnifiedRequest(AIHappey.Responses.ResponseRequest, System.String) | request, providerId
+AIHappey.Responses.Mapping.ResponsesUnifiedMapper | Method | AIHappey.Unified.Models.AIResponse ToUnifiedResponse(AIHappey.Responses.ResponseResult, System.String) | response, providerId
+AIHappey.Responses.Mapping.ResponsesUnifiedMapper | Method | System.Collections.Generic.IAsyncEnumerable`1[AIHappey.Responses.Streaming.ResponseStreamPart] ToResponseStreamParts(System.Collections.Generic.IAsyncEnumerable`1[AIHappey.Unified.Models.AIStreamEvent], System.Threading.CancellationToken) | streamEvents, cancellationToken=null
+AIHappey.Responses.Mapping.ResponsesUnifiedMapper | Method | System.Collections.Generic.IEnumerable`1[AIHappey.Unified.Models.AIStreamEvent] ToUnifiedStreamEvent(AIHappey.Responses.Streaming.ResponseStreamPart, System.String) | part, providerId
+AIHappey.Responses.Mapping.ResponsesUnifiedMapper | Method | System.Collections.Generic.IEnumerable`1[AIHappey.Unified.Models.AIStreamEvent] ToUnifiedStreamEvent(AIHappey.Responses.Streaming.ResponseStreamPart, System.String, ResponseStreamMappingState) | part, providerId, state
+AIHappey.Responses.Mapping.ResponsesUnifiedMapper+ResponseReverseStreamState | Constructor | Void .ctor() | 
+AIHappey.Responses.Mapping.ResponsesUnifiedMapper+ResponseStreamMappingState | Constructor | Void .ctor() | 
+AIHappey.Unified.Models.AIAbortEventData | Constructor | Void .ctor() | 
+AIHappey.Unified.Models.AIAbortEventData | Method | System.String get_Reason() | 
+AIHappey.Unified.Models.AIAbortEventData | Method | Void set_Reason(System.String) | value
+AIHappey.Unified.Models.AIAbortEventData | Property | System.String Reason
+AIHappey.Unified.Models.AIContentPart | Method | System.Collections.Generic.Dictionary`2[System.String,System.Object] get_Metadata() | 
+AIHappey.Unified.Models.AIContentPart | Method | System.String get_Type() | 
+AIHappey.Unified.Models.AIContentPart | Method | Void set_Metadata(System.Collections.Generic.Dictionary`2[System.String,System.Object]) | value
+AIHappey.Unified.Models.AIContentPart | Method | Void set_Type(System.String) | value
+AIHappey.Unified.Models.AIContentPart | Property | System.Collections.Generic.Dictionary`2[System.String,System.Object] Metadata
+AIHappey.Unified.Models.AIContentPart | Property | System.String Type
+AIHappey.Unified.Models.AIDataEventData | Constructor | Void .ctor() | 
+AIHappey.Unified.Models.AIDataEventData | Method | System.Nullable`1[System.Boolean] get_Transient() | 
+AIHappey.Unified.Models.AIDataEventData | Method | System.Object get_Data() | 
+AIHappey.Unified.Models.AIDataEventData | Method | System.String get_Id() | 
+AIHappey.Unified.Models.AIDataEventData | Method | Void set_Data(System.Object) | value
+AIHappey.Unified.Models.AIDataEventData | Method | Void set_Id(System.String) | value
+AIHappey.Unified.Models.AIDataEventData | Method | Void set_Transient(System.Nullable`1[System.Boolean]) | value
+AIHappey.Unified.Models.AIDataEventData | Property | System.Nullable`1[System.Boolean] Transient
+AIHappey.Unified.Models.AIDataEventData | Property | System.Object Data
+AIHappey.Unified.Models.AIDataEventData | Property | System.String Id
+AIHappey.Unified.Models.AIErrorEventData | Constructor | Void .ctor() | 
+AIHappey.Unified.Models.AIErrorEventData | Method | System.String get_ErrorText() | 
+AIHappey.Unified.Models.AIErrorEventData | Method | Void set_ErrorText(System.String) | value
+AIHappey.Unified.Models.AIErrorEventData | Property | System.String ErrorText
+AIHappey.Unified.Models.AIEventEnvelope | Constructor | Void .ctor() | 
+AIHappey.Unified.Models.AIEventEnvelope | Method | AIHappey.Unified.Models.AIInput get_Input() | 
+AIHappey.Unified.Models.AIEventEnvelope | Method | AIHappey.Unified.Models.AIOutput get_Output() | 
+AIHappey.Unified.Models.AIEventEnvelope | Method | System.Collections.Generic.Dictionary`2[System.String,System.Object] get_Metadata() | 
+AIHappey.Unified.Models.AIEventEnvelope | Method | System.Nullable`1[System.DateTimeOffset] get_Timestamp() | 
+AIHappey.Unified.Models.AIEventEnvelope | Method | System.Object get_Data() | 
+AIHappey.Unified.Models.AIEventEnvelope | Method | System.String get_Id() | 
+AIHappey.Unified.Models.AIEventEnvelope | Method | System.String get_Type() | 
+AIHappey.Unified.Models.AIEventEnvelope | Method | Void set_Data(System.Object) | value
+AIHappey.Unified.Models.AIEventEnvelope | Method | Void set_Id(System.String) | value
+AIHappey.Unified.Models.AIEventEnvelope | Method | Void set_Input(AIHappey.Unified.Models.AIInput) | value
+AIHappey.Unified.Models.AIEventEnvelope | Method | Void set_Metadata(System.Collections.Generic.Dictionary`2[System.String,System.Object]) | value
+AIHappey.Unified.Models.AIEventEnvelope | Method | Void set_Output(AIHappey.Unified.Models.AIOutput) | value
+AIHappey.Unified.Models.AIEventEnvelope | Method | Void set_Timestamp(System.Nullable`1[System.DateTimeOffset]) | value
+AIHappey.Unified.Models.AIEventEnvelope | Method | Void set_Type(System.String) | value
+AIHappey.Unified.Models.AIEventEnvelope | Property | AIHappey.Unified.Models.AIInput Input
+AIHappey.Unified.Models.AIEventEnvelope | Property | AIHappey.Unified.Models.AIOutput Output
+AIHappey.Unified.Models.AIEventEnvelope | Property | System.Collections.Generic.Dictionary`2[System.String,System.Object] Metadata
+AIHappey.Unified.Models.AIEventEnvelope | Property | System.Nullable`1[System.DateTimeOffset] Timestamp
+AIHappey.Unified.Models.AIEventEnvelope | Property | System.Object Data
+AIHappey.Unified.Models.AIEventEnvelope | Property | System.String Id
+AIHappey.Unified.Models.AIEventEnvelope | Property | System.String Type
+AIHappey.Unified.Models.AIFileContentPart | Constructor | Void .ctor() | 
+AIHappey.Unified.Models.AIFileContentPart | Method | System.Object get_Data() | 
+AIHappey.Unified.Models.AIFileContentPart | Method | System.String get_Filename() | 
+AIHappey.Unified.Models.AIFileContentPart | Method | System.String get_MediaType() | 
+AIHappey.Unified.Models.AIFileContentPart | Method | Void set_Data(System.Object) | value
+AIHappey.Unified.Models.AIFileContentPart | Method | Void set_Filename(System.String) | value
+AIHappey.Unified.Models.AIFileContentPart | Method | Void set_MediaType(System.String) | value
+AIHappey.Unified.Models.AIFileContentPart | Property | System.Object Data
+AIHappey.Unified.Models.AIFileContentPart | Property | System.String Filename
+AIHappey.Unified.Models.AIFileContentPart | Property | System.String MediaType
+AIHappey.Unified.Models.AIFileEventData | Constructor | Void .ctor() | 
+AIHappey.Unified.Models.AIFileEventData | Method | System.Collections.Generic.Dictionary`2[System.String,System.Collections.Generic.Dictionary`2[System.String,System.Object]] get_ProviderMetadata() | 
+AIHappey.Unified.Models.AIFileEventData | Method | System.String get_Filename() | 
+AIHappey.Unified.Models.AIFileEventData | Method | System.String get_MediaType() | 
+AIHappey.Unified.Models.AIFileEventData | Method | System.String get_Url() | 
+AIHappey.Unified.Models.AIFileEventData | Method | Void set_Filename(System.String) | value
+AIHappey.Unified.Models.AIFileEventData | Method | Void set_MediaType(System.String) | value
+AIHappey.Unified.Models.AIFileEventData | Method | Void set_ProviderMetadata(System.Collections.Generic.Dictionary`2[System.String,System.Collections.Generic.Dictionary`2[System.String,System.Object]]) | value
+AIHappey.Unified.Models.AIFileEventData | Method | Void set_Url(System.String) | value
+AIHappey.Unified.Models.AIFileEventData | Property | System.Collections.Generic.Dictionary`2[System.String,System.Collections.Generic.Dictionary`2[System.String,System.Object]] ProviderMetadata
+AIHappey.Unified.Models.AIFileEventData | Property | System.String Filename
+AIHappey.Unified.Models.AIFileEventData | Property | System.String MediaType
+AIHappey.Unified.Models.AIFileEventData | Property | System.String Url
+AIHappey.Unified.Models.AIFinishEventData | Constructor | Void .ctor() | 
+AIHappey.Unified.Models.AIFinishEventData | Method | AIHappey.Unified.Models.AIFinishMessageMetadata get_MessageMetadata() | 
+AIHappey.Unified.Models.AIFinishEventData | Method | System.Nullable`1[System.Int32] get_InputTokens() | 
+AIHappey.Unified.Models.AIFinishEventData | Method | System.Nullable`1[System.Int32] get_OutputTokens() | 
+AIHappey.Unified.Models.AIFinishEventData | Method | System.Nullable`1[System.Int32] get_SequenceNumber() | 
+AIHappey.Unified.Models.AIFinishEventData | Method | System.Nullable`1[System.Int32] get_TotalTokens() | 
+AIHappey.Unified.Models.AIFinishEventData | Method | System.Object get_CompletedAt() | 
+AIHappey.Unified.Models.AIFinishEventData | Method | System.Object get_Response() | 
+AIHappey.Unified.Models.AIFinishEventData | Method | System.String get_FinishReason() | 
+AIHappey.Unified.Models.AIFinishEventData | Method | System.String get_Model() | 
+AIHappey.Unified.Models.AIFinishEventData | Method | System.String get_StopSequence() | 
+AIHappey.Unified.Models.AIFinishEventData | Method | Void set_CompletedAt(System.Object) | value
+AIHappey.Unified.Models.AIFinishEventData | Method | Void set_FinishReason(System.String) | value
+AIHappey.Unified.Models.AIFinishEventData | Method | Void set_InputTokens(System.Nullable`1[System.Int32]) | value
+AIHappey.Unified.Models.AIFinishEventData | Method | Void set_MessageMetadata(AIHappey.Unified.Models.AIFinishMessageMetadata) | value
+AIHappey.Unified.Models.AIFinishEventData | Method | Void set_Model(System.String) | value
+AIHappey.Unified.Models.AIFinishEventData | Method | Void set_OutputTokens(System.Nullable`1[System.Int32]) | value
+AIHappey.Unified.Models.AIFinishEventData | Method | Void set_Response(System.Object) | value
+AIHappey.Unified.Models.AIFinishEventData | Method | Void set_SequenceNumber(System.Nullable`1[System.Int32]) | value
+AIHappey.Unified.Models.AIFinishEventData | Method | Void set_StopSequence(System.String) | value
+AIHappey.Unified.Models.AIFinishEventData | Method | Void set_TotalTokens(System.Nullable`1[System.Int32]) | value
+AIHappey.Unified.Models.AIFinishEventData | Property | AIHappey.Unified.Models.AIFinishMessageMetadata MessageMetadata
+AIHappey.Unified.Models.AIFinishEventData | Property | System.Nullable`1[System.Int32] InputTokens
+AIHappey.Unified.Models.AIFinishEventData | Property | System.Nullable`1[System.Int32] OutputTokens
+AIHappey.Unified.Models.AIFinishEventData | Property | System.Nullable`1[System.Int32] SequenceNumber
+AIHappey.Unified.Models.AIFinishEventData | Property | System.Nullable`1[System.Int32] TotalTokens
+AIHappey.Unified.Models.AIFinishEventData | Property | System.Object CompletedAt
+AIHappey.Unified.Models.AIFinishEventData | Property | System.Object Response
+AIHappey.Unified.Models.AIFinishEventData | Property | System.String FinishReason
+AIHappey.Unified.Models.AIFinishEventData | Property | System.String Model
+AIHappey.Unified.Models.AIFinishEventData | Property | System.String StopSequence
+AIHappey.Unified.Models.AIFinishGatewayMetadata | Constructor | Void .ctor() | 
+AIHappey.Unified.Models.AIFinishGatewayMetadata | Method | AIHappey.Unified.Models.AIFinishGatewayMetadata <Clone>$() | 
+AIHappey.Unified.Models.AIFinishGatewayMetadata | Method | AIHappey.Unified.Models.AIFinishGatewayMetadata FromDictionary(System.Collections.Generic.Dictionary`2[System.String,System.Object]) | metadata
+AIHappey.Unified.Models.AIFinishGatewayMetadata | Method | Boolean Equals(AIHappey.Unified.Models.AIFinishGatewayMetadata) | other
+AIHappey.Unified.Models.AIFinishGatewayMetadata | Method | Boolean Equals(System.Object) | obj
+AIHappey.Unified.Models.AIFinishGatewayMetadata | Method | Boolean op_Equality(AIHappey.Unified.Models.AIFinishGatewayMetadata, AIHappey.Unified.Models.AIFinishGatewayMetadata) | left, right
+AIHappey.Unified.Models.AIFinishGatewayMetadata | Method | Boolean op_Inequality(AIHappey.Unified.Models.AIFinishGatewayMetadata, AIHappey.Unified.Models.AIFinishGatewayMetadata) | left, right
+AIHappey.Unified.Models.AIFinishGatewayMetadata | Method | Int32 GetHashCode() | 
+AIHappey.Unified.Models.AIFinishGatewayMetadata | Method | System.Collections.Generic.Dictionary`2[System.String,System.Object] ToDictionary() | 
+AIHappey.Unified.Models.AIFinishGatewayMetadata | Method | System.Collections.Generic.Dictionary`2[System.String,System.Text.Json.JsonElement] get_AdditionalProperties() | 
+AIHappey.Unified.Models.AIFinishGatewayMetadata | Method | System.Nullable`1[System.Decimal] get_Cost() | 
+AIHappey.Unified.Models.AIFinishGatewayMetadata | Method | System.String ToString() | 
+AIHappey.Unified.Models.AIFinishGatewayMetadata | Method | Void set_AdditionalProperties(System.Collections.Generic.Dictionary`2[System.String,System.Text.Json.JsonElement]) | value
+AIHappey.Unified.Models.AIFinishGatewayMetadata | Method | Void set_Cost(System.Nullable`1[System.Decimal]) | value
+AIHappey.Unified.Models.AIFinishGatewayMetadata | Property | System.Collections.Generic.Dictionary`2[System.String,System.Text.Json.JsonElement] AdditionalProperties
+AIHappey.Unified.Models.AIFinishGatewayMetadata | Property | System.Nullable`1[System.Decimal] Cost
+AIHappey.Unified.Models.AIFinishMessageMetadata | Constructor | Void .ctor() | 
+AIHappey.Unified.Models.AIFinishMessageMetadata | Method | AIHappey.Unified.Models.AIFinishGatewayMetadata get_Gateway() | 
+AIHappey.Unified.Models.AIFinishMessageMetadata | Method | AIHappey.Unified.Models.AIFinishMessageMetadata <Clone>$() | 
+AIHappey.Unified.Models.AIFinishMessageMetadata | Method | AIHappey.Unified.Models.AIFinishMessageMetadata Create(System.String, System.DateTimeOffset, System.Object, System.Nullable`1[System.Int32], System.Nullable`1[System.Int32], System.Nullable`1[System.Int32], System.Nullable`1[System.Double], System.Nullable`1[System.Int32], System.Nullable`1[System.Int32], System.Nullable`1[System.Int32], System.Nullable`1[System.Int32], System.Nullable`1[System.Int64], AIHappey.Unified.Models.AIFinishGatewayMetadata, System.Collections.Generic.Dictionary`2[System.String,System.Object]) | model, timestamp, usage=null, outputTokens=null, inputTokens=null, totalTokens=null, temperature=null, reasoningTokens=null, cachedInputTokens=null, cachedInputReadTokens=null, cachedInputWriteTokens=null, runtimeMs=null, gateway=null, additionalProperties=null
+AIHappey.Unified.Models.AIFinishMessageMetadata | Method | AIHappey.Unified.Models.AIFinishMessageMetadata FromDictionary[TValue](System.Collections.Generic.Dictionary`2[System.String,TValue], System.String, System.Nullable`1[System.DateTimeOffset]) | metadata, fallbackModel=null, fallbackTimestamp=null
+AIHappey.Unified.Models.AIFinishMessageMetadata | Method | AIHappey.Unified.Models.AIFinishMessageMetadata op_Implicit(System.Collections.Generic.Dictionary`2[System.String,System.Object]) | metadata
+AIHappey.Unified.Models.AIFinishMessageMetadata | Method | Boolean Equals(AIHappey.Unified.Models.AIFinishMessageMetadata) | other
+AIHappey.Unified.Models.AIFinishMessageMetadata | Method | Boolean Equals(System.Object) | obj
+AIHappey.Unified.Models.AIFinishMessageMetadata | Method | Boolean op_Equality(AIHappey.Unified.Models.AIFinishMessageMetadata, AIHappey.Unified.Models.AIFinishMessageMetadata) | left, right
+AIHappey.Unified.Models.AIFinishMessageMetadata | Method | Boolean op_Inequality(AIHappey.Unified.Models.AIFinishMessageMetadata, AIHappey.Unified.Models.AIFinishMessageMetadata) | left, right
+AIHappey.Unified.Models.AIFinishMessageMetadata | Method | Int32 GetHashCode() | 
+AIHappey.Unified.Models.AIFinishMessageMetadata | Method | System.Collections.Generic.Dictionary`2[System.String,System.Object] ToDictionary() | 
+AIHappey.Unified.Models.AIFinishMessageMetadata | Method | System.Collections.Generic.Dictionary`2[System.String,System.Text.Json.JsonElement] get_AdditionalProperties() | 
+AIHappey.Unified.Models.AIFinishMessageMetadata | Method | System.DateTimeOffset get_Timestamp() | 
+AIHappey.Unified.Models.AIFinishMessageMetadata | Method | System.Nullable`1[System.Double] get_Temperature() | 
+AIHappey.Unified.Models.AIFinishMessageMetadata | Method | System.Nullable`1[System.Int32] get_InputTokens() | 
+AIHappey.Unified.Models.AIFinishMessageMetadata | Method | System.Nullable`1[System.Int32] get_OutputTokens() | 
+AIHappey.Unified.Models.AIFinishMessageMetadata | Method | System.Nullable`1[System.Int32] get_TotalTokens() | 
+AIHappey.Unified.Models.AIFinishMessageMetadata | Method | System.String ToString() | 
+AIHappey.Unified.Models.AIFinishMessageMetadata | Method | System.Text.Json.JsonElement get_Usage() | 
+AIHappey.Unified.Models.AIFinishMessageMetadata | Method | Void set_AdditionalProperties(System.Collections.Generic.Dictionary`2[System.String,System.Text.Json.JsonElement]) | value
+AIHappey.Unified.Models.AIFinishMessageMetadata | Method | Void set_Gateway(AIHappey.Unified.Models.AIFinishGatewayMetadata) | value
+AIHappey.Unified.Models.AIFinishMessageMetadata | Method | Void set_InputTokens(System.Nullable`1[System.Int32]) | value
+AIHappey.Unified.Models.AIFinishMessageMetadata | Method | Void set_OutputTokens(System.Nullable`1[System.Int32]) | value
+AIHappey.Unified.Models.AIFinishMessageMetadata | Method | Void set_Temperature(System.Nullable`1[System.Double]) | value
+AIHappey.Unified.Models.AIFinishMessageMetadata | Method | Void set_Timestamp(System.DateTimeOffset) | value
+AIHappey.Unified.Models.AIFinishMessageMetadata | Method | Void set_TotalTokens(System.Nullable`1[System.Int32]) | value
+AIHappey.Unified.Models.AIFinishMessageMetadata | Method | Void set_Usage(System.Text.Json.JsonElement) | value
+AIHappey.Unified.Models.AIFinishMessageMetadata | Property | AIHappey.Unified.Models.AIFinishGatewayMetadata Gateway
+AIHappey.Unified.Models.AIFinishMessageMetadata | Property | System.Collections.Generic.Dictionary`2[System.String,System.Text.Json.JsonElement] AdditionalProperties
+AIHappey.Unified.Models.AIFinishMessageMetadata | Property | System.DateTimeOffset Timestamp
+AIHappey.Unified.Models.AIFinishMessageMetadata | Property | System.Nullable`1[System.Double] Temperature
+AIHappey.Unified.Models.AIFinishMessageMetadata | Property | System.Nullable`1[System.Int32] InputTokens
+AIHappey.Unified.Models.AIFinishMessageMetadata | Property | System.Nullable`1[System.Int32] OutputTokens
+AIHappey.Unified.Models.AIFinishMessageMetadata | Property | System.Nullable`1[System.Int32] TotalTokens
+AIHappey.Unified.Models.AIFinishMessageMetadata | Property | System.Text.Json.JsonElement Usage
+AIHappey.Unified.Models.AIInput | Constructor | Void .ctor() | 
+AIHappey.Unified.Models.AIInput | Method | System.Collections.Generic.Dictionary`2[System.String,System.Object] get_Metadata() | 
+AIHappey.Unified.Models.AIInput | Method | System.Collections.Generic.List`1[AIHappey.Unified.Models.AIInputItem] get_Items() | 
+AIHappey.Unified.Models.AIInput | Method | System.String get_Text() | 
+AIHappey.Unified.Models.AIInput | Method | Void set_Items(System.Collections.Generic.List`1[AIHappey.Unified.Models.AIInputItem]) | value
+AIHappey.Unified.Models.AIInput | Method | Void set_Metadata(System.Collections.Generic.Dictionary`2[System.String,System.Object]) | value
+AIHappey.Unified.Models.AIInput | Method | Void set_Text(System.String) | value
+AIHappey.Unified.Models.AIInput | Property | System.Collections.Generic.Dictionary`2[System.String,System.Object] Metadata
+AIHappey.Unified.Models.AIInput | Property | System.Collections.Generic.List`1[AIHappey.Unified.Models.AIInputItem] Items
+AIHappey.Unified.Models.AIInput | Property | System.String Text
+AIHappey.Unified.Models.AIInputItem | Constructor | Void .ctor() | 
+AIHappey.Unified.Models.AIInputItem | Method | System.Collections.Generic.Dictionary`2[System.String,System.Object] get_Metadata() | 
+AIHappey.Unified.Models.AIInputItem | Method | System.Collections.Generic.List`1[AIHappey.Unified.Models.AIContentPart] get_Content() | 
+AIHappey.Unified.Models.AIInputItem | Method | System.String get_Id() | 
+AIHappey.Unified.Models.AIInputItem | Method | System.String get_Role() | 
+AIHappey.Unified.Models.AIInputItem | Method | System.String get_Type() | 
+AIHappey.Unified.Models.AIInputItem | Method | Void set_Content(System.Collections.Generic.List`1[AIHappey.Unified.Models.AIContentPart]) | value
+AIHappey.Unified.Models.AIInputItem | Method | Void set_Id(System.String) | value
+AIHappey.Unified.Models.AIInputItem | Method | Void set_Metadata(System.Collections.Generic.Dictionary`2[System.String,System.Object]) | value
+AIHappey.Unified.Models.AIInputItem | Method | Void set_Role(System.String) | value
+AIHappey.Unified.Models.AIInputItem | Method | Void set_Type(System.String) | value
+AIHappey.Unified.Models.AIInputItem | Property | System.Collections.Generic.Dictionary`2[System.String,System.Object] Metadata
+AIHappey.Unified.Models.AIInputItem | Property | System.Collections.Generic.List`1[AIHappey.Unified.Models.AIContentPart] Content
+AIHappey.Unified.Models.AIInputItem | Property | System.String Id
+AIHappey.Unified.Models.AIInputItem | Property | System.String Role
+AIHappey.Unified.Models.AIInputItem | Property | System.String Type
+AIHappey.Unified.Models.AIOutput | Constructor | Void .ctor() | 
+AIHappey.Unified.Models.AIOutput | Method | System.Collections.Generic.Dictionary`2[System.String,System.Object] get_Metadata() | 
+AIHappey.Unified.Models.AIOutput | Method | System.Collections.Generic.List`1[AIHappey.Unified.Models.AIOutputItem] get_Items() | 
+AIHappey.Unified.Models.AIOutput | Method | Void set_Items(System.Collections.Generic.List`1[AIHappey.Unified.Models.AIOutputItem]) | value
+AIHappey.Unified.Models.AIOutput | Method | Void set_Metadata(System.Collections.Generic.Dictionary`2[System.String,System.Object]) | value
+AIHappey.Unified.Models.AIOutput | Property | System.Collections.Generic.Dictionary`2[System.String,System.Object] Metadata
+AIHappey.Unified.Models.AIOutput | Property | System.Collections.Generic.List`1[AIHappey.Unified.Models.AIOutputItem] Items
+AIHappey.Unified.Models.AIOutputItem | Constructor | Void .ctor() | 
+AIHappey.Unified.Models.AIOutputItem | Method | System.Collections.Generic.Dictionary`2[System.String,System.Object] get_Metadata() | 
+AIHappey.Unified.Models.AIOutputItem | Method | System.Collections.Generic.List`1[AIHappey.Unified.Models.AIContentPart] get_Content() | 
+AIHappey.Unified.Models.AIOutputItem | Method | System.String get_Role() | 
+AIHappey.Unified.Models.AIOutputItem | Method | System.String get_Type() | 
+AIHappey.Unified.Models.AIOutputItem | Method | Void set_Content(System.Collections.Generic.List`1[AIHappey.Unified.Models.AIContentPart]) | value
+AIHappey.Unified.Models.AIOutputItem | Method | Void set_Metadata(System.Collections.Generic.Dictionary`2[System.String,System.Object]) | value
+AIHappey.Unified.Models.AIOutputItem | Method | Void set_Role(System.String) | value
+AIHappey.Unified.Models.AIOutputItem | Method | Void set_Type(System.String) | value
+AIHappey.Unified.Models.AIOutputItem | Property | System.Collections.Generic.Dictionary`2[System.String,System.Object] Metadata
+AIHappey.Unified.Models.AIOutputItem | Property | System.Collections.Generic.List`1[AIHappey.Unified.Models.AIContentPart] Content
+AIHappey.Unified.Models.AIOutputItem | Property | System.String Role
+AIHappey.Unified.Models.AIOutputItem | Property | System.String Type
+AIHappey.Unified.Models.AIReasoningContentPart | Constructor | Void .ctor() | 
+AIHappey.Unified.Models.AIReasoningContentPart | Method | System.String get_Signature() | 
+AIHappey.Unified.Models.AIReasoningContentPart | Method | System.String get_Text() | 
+AIHappey.Unified.Models.AIReasoningContentPart | Method | Void set_Signature(System.String) | value
+AIHappey.Unified.Models.AIReasoningContentPart | Method | Void set_Text(System.String) | value
+AIHappey.Unified.Models.AIReasoningContentPart | Property | System.String Signature
+AIHappey.Unified.Models.AIReasoningContentPart | Property | System.String Text
+AIHappey.Unified.Models.AIReasoningDeltaEventData | Constructor | Void .ctor() | 
+AIHappey.Unified.Models.AIReasoningDeltaEventData | Method | System.Collections.Generic.Dictionary`2[System.String,System.Collections.Generic.Dictionary`2[System.String,System.Object]] get_ProviderMetadata() | 
+AIHappey.Unified.Models.AIReasoningDeltaEventData | Method | System.String get_Delta() | 
+AIHappey.Unified.Models.AIReasoningDeltaEventData | Method | System.String get_Signature() | 
+AIHappey.Unified.Models.AIReasoningDeltaEventData | Method | Void set_Delta(System.String) | value
+AIHappey.Unified.Models.AIReasoningDeltaEventData | Method | Void set_ProviderMetadata(System.Collections.Generic.Dictionary`2[System.String,System.Collections.Generic.Dictionary`2[System.String,System.Object]]) | value
+AIHappey.Unified.Models.AIReasoningDeltaEventData | Method | Void set_Signature(System.String) | value
+AIHappey.Unified.Models.AIReasoningDeltaEventData | Property | System.Collections.Generic.Dictionary`2[System.String,System.Collections.Generic.Dictionary`2[System.String,System.Object]] ProviderMetadata
+AIHappey.Unified.Models.AIReasoningDeltaEventData | Property | System.String Delta
+AIHappey.Unified.Models.AIReasoningDeltaEventData | Property | System.String Signature
+AIHappey.Unified.Models.AIReasoningEndEventData | Constructor | Void .ctor() | 
+AIHappey.Unified.Models.AIReasoningEndEventData | Method | System.Collections.Generic.Dictionary`2[System.String,System.Collections.Generic.Dictionary`2[System.String,System.Object]] get_ProviderMetadata() | 
+AIHappey.Unified.Models.AIReasoningEndEventData | Method | System.String get_Signature() | 
+AIHappey.Unified.Models.AIReasoningEndEventData | Method | Void set_ProviderMetadata(System.Collections.Generic.Dictionary`2[System.String,System.Collections.Generic.Dictionary`2[System.String,System.Object]]) | value
+AIHappey.Unified.Models.AIReasoningEndEventData | Method | Void set_Signature(System.String) | value
+AIHappey.Unified.Models.AIReasoningEndEventData | Property | System.Collections.Generic.Dictionary`2[System.String,System.Collections.Generic.Dictionary`2[System.String,System.Object]] ProviderMetadata
+AIHappey.Unified.Models.AIReasoningEndEventData | Property | System.String Signature
+AIHappey.Unified.Models.AIReasoningStartEventData | Constructor | Void .ctor() | 
+AIHappey.Unified.Models.AIReasoningStartEventData | Method | System.Collections.Generic.Dictionary`2[System.String,System.Collections.Generic.Dictionary`2[System.String,System.Object]] get_ProviderMetadata() | 
+AIHappey.Unified.Models.AIReasoningStartEventData | Method | System.String get_Signature() | 
+AIHappey.Unified.Models.AIReasoningStartEventData | Method | Void set_ProviderMetadata(System.Collections.Generic.Dictionary`2[System.String,System.Collections.Generic.Dictionary`2[System.String,System.Object]]) | value
+AIHappey.Unified.Models.AIReasoningStartEventData | Method | Void set_Signature(System.String) | value
+AIHappey.Unified.Models.AIReasoningStartEventData | Property | System.Collections.Generic.Dictionary`2[System.String,System.Collections.Generic.Dictionary`2[System.String,System.Object]] ProviderMetadata
+AIHappey.Unified.Models.AIReasoningStartEventData | Property | System.String Signature
+AIHappey.Unified.Models.AIRequest | Constructor | Void .ctor() | 
+AIHappey.Unified.Models.AIRequest | Method | AIHappey.Unified.Models.AIInput get_Input() | 
+AIHappey.Unified.Models.AIRequest | Method | System.Collections.Generic.Dictionary`2[System.String,System.Object] get_Metadata() | 
+AIHappey.Unified.Models.AIRequest | Method | System.Collections.Generic.Dictionary`2[System.String,System.String] get_Headers() | 
+AIHappey.Unified.Models.AIRequest | Method | System.Collections.Generic.List`1[AIHappey.Unified.Models.AIToolDefinition] get_Tools() | 
+AIHappey.Unified.Models.AIRequest | Method | System.Nullable`1[System.Boolean] get_ParallelToolCalls() | 
+AIHappey.Unified.Models.AIRequest | Method | System.Nullable`1[System.Boolean] get_Stream() | 
+AIHappey.Unified.Models.AIRequest | Method | System.Nullable`1[System.Double] get_Temperature() | 
+AIHappey.Unified.Models.AIRequest | Method | System.Nullable`1[System.Double] get_TopP() | 
+AIHappey.Unified.Models.AIRequest | Method | System.Nullable`1[System.Int32] get_MaxOutputTokens() | 
+AIHappey.Unified.Models.AIRequest | Method | System.Nullable`1[System.Int32] get_MaxToolCalls() | 
+AIHappey.Unified.Models.AIRequest | Method | System.Object get_ResponseFormat() | 
+AIHappey.Unified.Models.AIRequest | Method | System.Object get_ToolChoice() | 
+AIHappey.Unified.Models.AIRequest | Method | System.String get_Id() | 
+AIHappey.Unified.Models.AIRequest | Method | System.String get_Instructions() | 
+AIHappey.Unified.Models.AIRequest | Method | System.String get_Model() | 
+AIHappey.Unified.Models.AIRequest | Method | System.String get_ProviderId() | 
+AIHappey.Unified.Models.AIRequest | Method | System.String get_Verbosity() | 
+AIHappey.Unified.Models.AIRequest | Method | Void set_Headers(System.Collections.Generic.Dictionary`2[System.String,System.String]) | value
+AIHappey.Unified.Models.AIRequest | Method | Void set_Id(System.String) | value
+AIHappey.Unified.Models.AIRequest | Method | Void set_Input(AIHappey.Unified.Models.AIInput) | value
+AIHappey.Unified.Models.AIRequest | Method | Void set_Instructions(System.String) | value
+AIHappey.Unified.Models.AIRequest | Method | Void set_MaxOutputTokens(System.Nullable`1[System.Int32]) | value
+AIHappey.Unified.Models.AIRequest | Method | Void set_MaxToolCalls(System.Nullable`1[System.Int32]) | value
+AIHappey.Unified.Models.AIRequest | Method | Void set_Metadata(System.Collections.Generic.Dictionary`2[System.String,System.Object]) | value
+AIHappey.Unified.Models.AIRequest | Method | Void set_Model(System.String) | value
+AIHappey.Unified.Models.AIRequest | Method | Void set_ParallelToolCalls(System.Nullable`1[System.Boolean]) | value
+AIHappey.Unified.Models.AIRequest | Method | Void set_ProviderId(System.String) | value
+AIHappey.Unified.Models.AIRequest | Method | Void set_ResponseFormat(System.Object) | value
+AIHappey.Unified.Models.AIRequest | Method | Void set_Stream(System.Nullable`1[System.Boolean]) | value
+AIHappey.Unified.Models.AIRequest | Method | Void set_Temperature(System.Nullable`1[System.Double]) | value
+AIHappey.Unified.Models.AIRequest | Method | Void set_ToolChoice(System.Object) | value
+AIHappey.Unified.Models.AIRequest | Method | Void set_Tools(System.Collections.Generic.List`1[AIHappey.Unified.Models.AIToolDefinition]) | value
+AIHappey.Unified.Models.AIRequest | Method | Void set_TopP(System.Nullable`1[System.Double]) | value
+AIHappey.Unified.Models.AIRequest | Method | Void set_Verbosity(System.String) | value
+AIHappey.Unified.Models.AIRequest | Property | AIHappey.Unified.Models.AIInput Input
+AIHappey.Unified.Models.AIRequest | Property | System.Collections.Generic.Dictionary`2[System.String,System.Object] Metadata
+AIHappey.Unified.Models.AIRequest | Property | System.Collections.Generic.Dictionary`2[System.String,System.String] Headers
+AIHappey.Unified.Models.AIRequest | Property | System.Collections.Generic.List`1[AIHappey.Unified.Models.AIToolDefinition] Tools
+AIHappey.Unified.Models.AIRequest | Property | System.Nullable`1[System.Boolean] ParallelToolCalls
+AIHappey.Unified.Models.AIRequest | Property | System.Nullable`1[System.Boolean] Stream
+AIHappey.Unified.Models.AIRequest | Property | System.Nullable`1[System.Double] Temperature
+AIHappey.Unified.Models.AIRequest | Property | System.Nullable`1[System.Double] TopP
+AIHappey.Unified.Models.AIRequest | Property | System.Nullable`1[System.Int32] MaxOutputTokens
+AIHappey.Unified.Models.AIRequest | Property | System.Nullable`1[System.Int32] MaxToolCalls
+AIHappey.Unified.Models.AIRequest | Property | System.Object ResponseFormat
+AIHappey.Unified.Models.AIRequest | Property | System.Object ToolChoice
+AIHappey.Unified.Models.AIRequest | Property | System.String Id
+AIHappey.Unified.Models.AIRequest | Property | System.String Instructions
+AIHappey.Unified.Models.AIRequest | Property | System.String Model
+AIHappey.Unified.Models.AIRequest | Property | System.String ProviderId
+AIHappey.Unified.Models.AIRequest | Property | System.String Verbosity
+AIHappey.Unified.Models.AIResponse | Constructor | Void .ctor() | 
+AIHappey.Unified.Models.AIResponse | Method | AIHappey.Unified.Models.AIOutput get_Output() | 
+AIHappey.Unified.Models.AIResponse | Method | AIHappey.Unified.Models.AIUsage get_NormalizedUsage() | 
+AIHappey.Unified.Models.AIResponse | Method | System.Collections.Generic.Dictionary`2[System.String,System.Object] get_Metadata() | 
+AIHappey.Unified.Models.AIResponse | Method | System.Object get_Usage() | 
+AIHappey.Unified.Models.AIResponse | Method | System.String get_Model() | 
+AIHappey.Unified.Models.AIResponse | Method | System.String get_ProviderId() | 
+AIHappey.Unified.Models.AIResponse | Method | System.String get_Status() | 
+AIHappey.Unified.Models.AIResponse | Method | Void set_Metadata(System.Collections.Generic.Dictionary`2[System.String,System.Object]) | value
+AIHappey.Unified.Models.AIResponse | Method | Void set_Model(System.String) | value
+AIHappey.Unified.Models.AIResponse | Method | Void set_Output(AIHappey.Unified.Models.AIOutput) | value
+AIHappey.Unified.Models.AIResponse | Method | Void set_ProviderId(System.String) | value
+AIHappey.Unified.Models.AIResponse | Method | Void set_Status(System.String) | value
+AIHappey.Unified.Models.AIResponse | Method | Void set_Usage(System.Object) | value
+AIHappey.Unified.Models.AIResponse | Property | AIHappey.Unified.Models.AIOutput Output
+AIHappey.Unified.Models.AIResponse | Property | AIHappey.Unified.Models.AIUsage NormalizedUsage
+AIHappey.Unified.Models.AIResponse | Property | System.Collections.Generic.Dictionary`2[System.String,System.Object] Metadata
+AIHappey.Unified.Models.AIResponse | Property | System.Object Usage
+AIHappey.Unified.Models.AIResponse | Property | System.String Model
+AIHappey.Unified.Models.AIResponse | Property | System.String ProviderId
+AIHappey.Unified.Models.AIResponse | Property | System.String Status
+AIHappey.Unified.Models.AISourceUrlEventData | Constructor | Void .ctor() | 
+AIHappey.Unified.Models.AISourceUrlEventData | Method | System.Collections.Generic.Dictionary`2[System.String,System.Collections.Generic.Dictionary`2[System.String,System.Object]] get_ProviderMetadata() | 
+AIHappey.Unified.Models.AISourceUrlEventData | Method | System.Nullable`1[System.Int32] get_EndIndex() | 
+AIHappey.Unified.Models.AISourceUrlEventData | Method | System.Nullable`1[System.Int32] get_StartIndex() | 
+AIHappey.Unified.Models.AISourceUrlEventData | Method | System.String get_ContainerId() | 
+AIHappey.Unified.Models.AISourceUrlEventData | Method | System.String get_FileId() | 
+AIHappey.Unified.Models.AISourceUrlEventData | Method | System.String get_Filename() | 
+AIHappey.Unified.Models.AISourceUrlEventData | Method | System.String get_SourceId() | 
+AIHappey.Unified.Models.AISourceUrlEventData | Method | System.String get_Title() | 
+AIHappey.Unified.Models.AISourceUrlEventData | Method | System.String get_Type() | 
+AIHappey.Unified.Models.AISourceUrlEventData | Method | System.String get_Url() | 
+AIHappey.Unified.Models.AISourceUrlEventData | Method | Void set_ContainerId(System.String) | value
+AIHappey.Unified.Models.AISourceUrlEventData | Method | Void set_EndIndex(System.Nullable`1[System.Int32]) | value
+AIHappey.Unified.Models.AISourceUrlEventData | Method | Void set_FileId(System.String) | value
+AIHappey.Unified.Models.AISourceUrlEventData | Method | Void set_Filename(System.String) | value
+AIHappey.Unified.Models.AISourceUrlEventData | Method | Void set_ProviderMetadata(System.Collections.Generic.Dictionary`2[System.String,System.Collections.Generic.Dictionary`2[System.String,System.Object]]) | value
+AIHappey.Unified.Models.AISourceUrlEventData | Method | Void set_SourceId(System.String) | value
+AIHappey.Unified.Models.AISourceUrlEventData | Method | Void set_StartIndex(System.Nullable`1[System.Int32]) | value
+AIHappey.Unified.Models.AISourceUrlEventData | Method | Void set_Title(System.String) | value
+AIHappey.Unified.Models.AISourceUrlEventData | Method | Void set_Type(System.String) | value
+AIHappey.Unified.Models.AISourceUrlEventData | Method | Void set_Url(System.String) | value
+AIHappey.Unified.Models.AISourceUrlEventData | Property | System.Collections.Generic.Dictionary`2[System.String,System.Collections.Generic.Dictionary`2[System.String,System.Object]] ProviderMetadata
+AIHappey.Unified.Models.AISourceUrlEventData | Property | System.Nullable`1[System.Int32] EndIndex
+AIHappey.Unified.Models.AISourceUrlEventData | Property | System.Nullable`1[System.Int32] StartIndex
+AIHappey.Unified.Models.AISourceUrlEventData | Property | System.String ContainerId
+AIHappey.Unified.Models.AISourceUrlEventData | Property | System.String FileId
+AIHappey.Unified.Models.AISourceUrlEventData | Property | System.String Filename
+AIHappey.Unified.Models.AISourceUrlEventData | Property | System.String SourceId
+AIHappey.Unified.Models.AISourceUrlEventData | Property | System.String Title
+AIHappey.Unified.Models.AISourceUrlEventData | Property | System.String Type
+AIHappey.Unified.Models.AISourceUrlEventData | Property | System.String Url
+AIHappey.Unified.Models.AIStreamEvent | Constructor | Void .ctor() | 
+AIHappey.Unified.Models.AIStreamEvent | Method | AIHappey.Unified.Models.AIEventEnvelope get_Event() | 
+AIHappey.Unified.Models.AIStreamEvent | Method | System.Collections.Generic.Dictionary`2[System.String,System.Object] get_Metadata() | 
+AIHappey.Unified.Models.AIStreamEvent | Method | System.String get_ProviderId() | 
+AIHappey.Unified.Models.AIStreamEvent | Method | Void set_Event(AIHappey.Unified.Models.AIEventEnvelope) | value
+AIHappey.Unified.Models.AIStreamEvent | Method | Void set_Metadata(System.Collections.Generic.Dictionary`2[System.String,System.Object]) | value
+AIHappey.Unified.Models.AIStreamEvent | Method | Void set_ProviderId(System.String) | value
+AIHappey.Unified.Models.AIStreamEvent | Property | AIHappey.Unified.Models.AIEventEnvelope Event
+AIHappey.Unified.Models.AIStreamEvent | Property | System.Collections.Generic.Dictionary`2[System.String,System.Object] Metadata
+AIHappey.Unified.Models.AIStreamEvent | Property | System.String ProviderId
+AIHappey.Unified.Models.AITextContentPart | Constructor | Void .ctor() | 
+AIHappey.Unified.Models.AITextContentPart | Method | System.String get_Text() | 
+AIHappey.Unified.Models.AITextContentPart | Method | Void set_Text(System.String) | value
+AIHappey.Unified.Models.AITextContentPart | Property | System.String Text
+AIHappey.Unified.Models.AITextDeltaEventData | Constructor | Void .ctor() | 
+AIHappey.Unified.Models.AITextDeltaEventData | Method | System.Collections.Generic.Dictionary`2[System.String,System.Object] get_ProviderMetadata() | 
+AIHappey.Unified.Models.AITextDeltaEventData | Method | System.String get_Delta() | 
+AIHappey.Unified.Models.AITextDeltaEventData | Method | Void set_Delta(System.String) | value
+AIHappey.Unified.Models.AITextDeltaEventData | Method | Void set_ProviderMetadata(System.Collections.Generic.Dictionary`2[System.String,System.Object]) | value
+AIHappey.Unified.Models.AITextDeltaEventData | Property | System.Collections.Generic.Dictionary`2[System.String,System.Object] ProviderMetadata
+AIHappey.Unified.Models.AITextDeltaEventData | Property | System.String Delta
+AIHappey.Unified.Models.AITextEndEventData | Constructor | Void .ctor() | 
+AIHappey.Unified.Models.AITextEndEventData | Method | System.Collections.Generic.Dictionary`2[System.String,System.Object] get_ProviderMetadata() | 
+AIHappey.Unified.Models.AITextEndEventData | Method | Void set_ProviderMetadata(System.Collections.Generic.Dictionary`2[System.String,System.Object]) | value
+AIHappey.Unified.Models.AITextEndEventData | Property | System.Collections.Generic.Dictionary`2[System.String,System.Object] ProviderMetadata
+AIHappey.Unified.Models.AITextStartEventData | Constructor | Void .ctor() | 
+AIHappey.Unified.Models.AITextStartEventData | Method | System.Collections.Generic.Dictionary`2[System.String,System.Object] get_ProviderMetadata() | 
+AIHappey.Unified.Models.AITextStartEventData | Method | Void set_ProviderMetadata(System.Collections.Generic.Dictionary`2[System.String,System.Object]) | value
+AIHappey.Unified.Models.AITextStartEventData | Property | System.Collections.Generic.Dictionary`2[System.String,System.Object] ProviderMetadata
+AIHappey.Unified.Models.AIToolApprovalRequestEventData | Constructor | Void .ctor() | 
+AIHappey.Unified.Models.AIToolApprovalRequestEventData | Method | System.String get_ApprovalId() | 
+AIHappey.Unified.Models.AIToolApprovalRequestEventData | Method | System.String get_ToolCallId() | 
+AIHappey.Unified.Models.AIToolApprovalRequestEventData | Method | Void set_ApprovalId(System.String) | value
+AIHappey.Unified.Models.AIToolApprovalRequestEventData | Method | Void set_ToolCallId(System.String) | value
+AIHappey.Unified.Models.AIToolApprovalRequestEventData | Property | System.String ApprovalId
+AIHappey.Unified.Models.AIToolApprovalRequestEventData | Property | System.String ToolCallId
+AIHappey.Unified.Models.AIToolCallApproval | Constructor | Void .ctor() | 
+AIHappey.Unified.Models.AIToolCallApproval | Method | System.Nullable`1[System.Boolean] get_Approved() | 
+AIHappey.Unified.Models.AIToolCallApproval | Method | System.String get_Id() | 
+AIHappey.Unified.Models.AIToolCallApproval | Method | System.String get_Reason() | 
+AIHappey.Unified.Models.AIToolCallApproval | Method | Void set_Approved(System.Nullable`1[System.Boolean]) | value
+AIHappey.Unified.Models.AIToolCallApproval | Method | Void set_Id(System.String) | value
+AIHappey.Unified.Models.AIToolCallApproval | Method | Void set_Reason(System.String) | value
+AIHappey.Unified.Models.AIToolCallApproval | Property | System.Nullable`1[System.Boolean] Approved
+AIHappey.Unified.Models.AIToolCallApproval | Property | System.String Id
+AIHappey.Unified.Models.AIToolCallApproval | Property | System.String Reason
+AIHappey.Unified.Models.AIToolCallContentPart | Constructor | Void .ctor() | 
+AIHappey.Unified.Models.AIToolCallContentPart | Method | AIHappey.Unified.Models.AIToolCallApproval get_Approval() | 
+AIHappey.Unified.Models.AIToolCallContentPart | Method | Boolean get_IsClientToolCall() | 
+AIHappey.Unified.Models.AIToolCallContentPart | Method | Boolean get_IsProviderToolCall() | 
+AIHappey.Unified.Models.AIToolCallContentPart | Method | System.Nullable`1[System.Boolean] get_ProviderExecuted() | 
+AIHappey.Unified.Models.AIToolCallContentPart | Method | System.Object get_Input() | 
+AIHappey.Unified.Models.AIToolCallContentPart | Method | System.Object get_Output() | 
+AIHappey.Unified.Models.AIToolCallContentPart | Method | System.String get_State() | 
+AIHappey.Unified.Models.AIToolCallContentPart | Method | System.String get_Title() | 
+AIHappey.Unified.Models.AIToolCallContentPart | Method | System.String get_ToolCallId() | 
+AIHappey.Unified.Models.AIToolCallContentPart | Method | System.String get_ToolName() | 
+AIHappey.Unified.Models.AIToolCallContentPart | Method | Void set_Approval(AIHappey.Unified.Models.AIToolCallApproval) | value
+AIHappey.Unified.Models.AIToolCallContentPart | Method | Void set_Input(System.Object) | value
+AIHappey.Unified.Models.AIToolCallContentPart | Method | Void set_Output(System.Object) | value
+AIHappey.Unified.Models.AIToolCallContentPart | Method | Void set_ProviderExecuted(System.Nullable`1[System.Boolean]) | value
+AIHappey.Unified.Models.AIToolCallContentPart | Method | Void set_State(System.String) | value
+AIHappey.Unified.Models.AIToolCallContentPart | Method | Void set_Title(System.String) | value
+AIHappey.Unified.Models.AIToolCallContentPart | Method | Void set_ToolCallId(System.String) | value
+AIHappey.Unified.Models.AIToolCallContentPart | Method | Void set_ToolName(System.String) | value
+AIHappey.Unified.Models.AIToolCallContentPart | Property | AIHappey.Unified.Models.AIToolCallApproval Approval
+AIHappey.Unified.Models.AIToolCallContentPart | Property | Boolean IsClientToolCall
+AIHappey.Unified.Models.AIToolCallContentPart | Property | Boolean IsProviderToolCall
+AIHappey.Unified.Models.AIToolCallContentPart | Property | System.Nullable`1[System.Boolean] ProviderExecuted
+AIHappey.Unified.Models.AIToolCallContentPart | Property | System.Object Input
+AIHappey.Unified.Models.AIToolCallContentPart | Property | System.Object Output
+AIHappey.Unified.Models.AIToolCallContentPart | Property | System.String State
+AIHappey.Unified.Models.AIToolCallContentPart | Property | System.String Title
+AIHappey.Unified.Models.AIToolCallContentPart | Property | System.String ToolCallId
+AIHappey.Unified.Models.AIToolCallContentPart | Property | System.String ToolName
+AIHappey.Unified.Models.AIToolCallContentPartExtensions | Method | Boolean IsSyntheticProviderExecutedFileTransfer(AIHappey.Unified.Models.AIToolCallContentPart) | toolPart
+AIHappey.Unified.Models.AIToolCallContentPartExtensions | Method | Boolean IsSyntheticProviderExecutedGeneratedMedia(AIHappey.Unified.Models.AIToolCallContentPart) | toolPart
+AIHappey.Unified.Models.AIToolCallContentPartExtensions | Method | Boolean IsSyntheticProviderExecutedReplayArtifact(AIHappey.Unified.Models.AIToolCallContentPart) | toolPart
+AIHappey.Unified.Models.AIToolCallContentPartExtensions | Method | Boolean IsSyntheticProviderExecutedSpeech(AIHappey.Unified.Models.AIToolCallContentPart) | toolPart
+AIHappey.Unified.Models.AIToolDefinition | Constructor | Void .ctor() | 
+AIHappey.Unified.Models.AIToolDefinition | Method | System.Collections.Generic.Dictionary`2[System.String,System.Object] get_Metadata() | 
+AIHappey.Unified.Models.AIToolDefinition | Method | System.Collections.Generic.IEnumerable`1[System.String] get_AllowedCallers() | 
+AIHappey.Unified.Models.AIToolDefinition | Method | System.Nullable`1[System.Boolean] get_DeferLoading() | 
+AIHappey.Unified.Models.AIToolDefinition | Method | System.Object get_InputSchema() | 
+AIHappey.Unified.Models.AIToolDefinition | Method | System.Object get_OutputSchema() | 
+AIHappey.Unified.Models.AIToolDefinition | Method | System.String get_Description() | 
+AIHappey.Unified.Models.AIToolDefinition | Method | System.String get_Name() | 
+AIHappey.Unified.Models.AIToolDefinition | Method | System.String get_Title() | 
+AIHappey.Unified.Models.AIToolDefinition | Method | Void set_AllowedCallers(System.Collections.Generic.IEnumerable`1[System.String]) | value
+AIHappey.Unified.Models.AIToolDefinition | Method | Void set_DeferLoading(System.Nullable`1[System.Boolean]) | value
+AIHappey.Unified.Models.AIToolDefinition | Method | Void set_Description(System.String) | value
+AIHappey.Unified.Models.AIToolDefinition | Method | Void set_InputSchema(System.Object) | value
+AIHappey.Unified.Models.AIToolDefinition | Method | Void set_Metadata(System.Collections.Generic.Dictionary`2[System.String,System.Object]) | value
+AIHappey.Unified.Models.AIToolDefinition | Method | Void set_Name(System.String) | value
+AIHappey.Unified.Models.AIToolDefinition | Method | Void set_OutputSchema(System.Object) | value
+AIHappey.Unified.Models.AIToolDefinition | Method | Void set_Title(System.String) | value
+AIHappey.Unified.Models.AIToolDefinition | Property | System.Collections.Generic.Dictionary`2[System.String,System.Object] Metadata
+AIHappey.Unified.Models.AIToolDefinition | Property | System.Collections.Generic.IEnumerable`1[System.String] AllowedCallers
+AIHappey.Unified.Models.AIToolDefinition | Property | System.Nullable`1[System.Boolean] DeferLoading
+AIHappey.Unified.Models.AIToolDefinition | Property | System.Object InputSchema
+AIHappey.Unified.Models.AIToolDefinition | Property | System.Object OutputSchema
+AIHappey.Unified.Models.AIToolDefinition | Property | System.String Description
+AIHappey.Unified.Models.AIToolDefinition | Property | System.String Name
+AIHappey.Unified.Models.AIToolDefinition | Property | System.String Title
+AIHappey.Unified.Models.AIToolInputAvailableEventData | Constructor | Void .ctor() | 
+AIHappey.Unified.Models.AIToolInputAvailableEventData | Method | System.Collections.Generic.Dictionary`2[System.String,System.Collections.Generic.Dictionary`2[System.String,System.Object]] get_ProviderMetadata() | 
+AIHappey.Unified.Models.AIToolInputAvailableEventData | Method | System.Nullable`1[System.Boolean] get_ProviderExecuted() | 
+AIHappey.Unified.Models.AIToolInputAvailableEventData | Method | System.Object get_Input() | 
+AIHappey.Unified.Models.AIToolInputAvailableEventData | Method | System.String get_Title() | 
+AIHappey.Unified.Models.AIToolInputAvailableEventData | Method | System.String get_ToolName() | 
+AIHappey.Unified.Models.AIToolInputAvailableEventData | Method | Void set_Input(System.Object) | value
+AIHappey.Unified.Models.AIToolInputAvailableEventData | Method | Void set_ProviderExecuted(System.Nullable`1[System.Boolean]) | value
+AIHappey.Unified.Models.AIToolInputAvailableEventData | Method | Void set_ProviderMetadata(System.Collections.Generic.Dictionary`2[System.String,System.Collections.Generic.Dictionary`2[System.String,System.Object]]) | value
+AIHappey.Unified.Models.AIToolInputAvailableEventData | Method | Void set_Title(System.String) | value
+AIHappey.Unified.Models.AIToolInputAvailableEventData | Method | Void set_ToolName(System.String) | value
+AIHappey.Unified.Models.AIToolInputAvailableEventData | Property | System.Collections.Generic.Dictionary`2[System.String,System.Collections.Generic.Dictionary`2[System.String,System.Object]] ProviderMetadata
+AIHappey.Unified.Models.AIToolInputAvailableEventData | Property | System.Nullable`1[System.Boolean] ProviderExecuted
+AIHappey.Unified.Models.AIToolInputAvailableEventData | Property | System.Object Input
+AIHappey.Unified.Models.AIToolInputAvailableEventData | Property | System.String Title
+AIHappey.Unified.Models.AIToolInputAvailableEventData | Property | System.String ToolName
+AIHappey.Unified.Models.AIToolInputDeltaEventData | Constructor | Void .ctor() | 
+AIHappey.Unified.Models.AIToolInputDeltaEventData | Method | System.String get_InputTextDelta() | 
+AIHappey.Unified.Models.AIToolInputDeltaEventData | Method | Void set_InputTextDelta(System.String) | value
+AIHappey.Unified.Models.AIToolInputDeltaEventData | Property | System.String InputTextDelta
+AIHappey.Unified.Models.AIToolInputStartEventData | Constructor | Void .ctor() | 
+AIHappey.Unified.Models.AIToolInputStartEventData | Method | System.Collections.Generic.Dictionary`2[System.String,System.Collections.Generic.Dictionary`2[System.String,System.Object]] get_ProviderMetadata() | 
+AIHappey.Unified.Models.AIToolInputStartEventData | Method | System.Nullable`1[System.Boolean] get_ProviderExecuted() | 
+AIHappey.Unified.Models.AIToolInputStartEventData | Method | System.String get_Title() | 
+AIHappey.Unified.Models.AIToolInputStartEventData | Method | System.String get_ToolName() | 
+AIHappey.Unified.Models.AIToolInputStartEventData | Method | Void set_ProviderExecuted(System.Nullable`1[System.Boolean]) | value
+AIHappey.Unified.Models.AIToolInputStartEventData | Method | Void set_ProviderMetadata(System.Collections.Generic.Dictionary`2[System.String,System.Collections.Generic.Dictionary`2[System.String,System.Object]]) | value
+AIHappey.Unified.Models.AIToolInputStartEventData | Method | Void set_Title(System.String) | value
+AIHappey.Unified.Models.AIToolInputStartEventData | Method | Void set_ToolName(System.String) | value
+AIHappey.Unified.Models.AIToolInputStartEventData | Property | System.Collections.Generic.Dictionary`2[System.String,System.Collections.Generic.Dictionary`2[System.String,System.Object]] ProviderMetadata
+AIHappey.Unified.Models.AIToolInputStartEventData | Property | System.Nullable`1[System.Boolean] ProviderExecuted
+AIHappey.Unified.Models.AIToolInputStartEventData | Property | System.String Title
+AIHappey.Unified.Models.AIToolInputStartEventData | Property | System.String ToolName
+AIHappey.Unified.Models.AIToolOutputAvailableEventData | Constructor | Void .ctor() | 
+AIHappey.Unified.Models.AIToolOutputAvailableEventData | Method | System.Collections.Generic.Dictionary`2[System.String,System.Collections.Generic.Dictionary`2[System.String,System.Object]] get_ProviderMetadata() | 
+AIHappey.Unified.Models.AIToolOutputAvailableEventData | Method | System.Nullable`1[System.Boolean] get_Dynamic() | 
+AIHappey.Unified.Models.AIToolOutputAvailableEventData | Method | System.Nullable`1[System.Boolean] get_Preliminary() | 
+AIHappey.Unified.Models.AIToolOutputAvailableEventData | Method | System.Nullable`1[System.Boolean] get_ProviderExecuted() | 
+AIHappey.Unified.Models.AIToolOutputAvailableEventData | Method | System.Object get_Output() | 
+AIHappey.Unified.Models.AIToolOutputAvailableEventData | Method | System.String get_ToolName() | 
+AIHappey.Unified.Models.AIToolOutputAvailableEventData | Method | Void set_Dynamic(System.Nullable`1[System.Boolean]) | value
+AIHappey.Unified.Models.AIToolOutputAvailableEventData | Method | Void set_Output(System.Object) | value
+AIHappey.Unified.Models.AIToolOutputAvailableEventData | Method | Void set_Preliminary(System.Nullable`1[System.Boolean]) | value
+AIHappey.Unified.Models.AIToolOutputAvailableEventData | Method | Void set_ProviderExecuted(System.Nullable`1[System.Boolean]) | value
+AIHappey.Unified.Models.AIToolOutputAvailableEventData | Method | Void set_ProviderMetadata(System.Collections.Generic.Dictionary`2[System.String,System.Collections.Generic.Dictionary`2[System.String,System.Object]]) | value
+AIHappey.Unified.Models.AIToolOutputAvailableEventData | Method | Void set_ToolName(System.String) | value
+AIHappey.Unified.Models.AIToolOutputAvailableEventData | Property | System.Collections.Generic.Dictionary`2[System.String,System.Collections.Generic.Dictionary`2[System.String,System.Object]] ProviderMetadata
+AIHappey.Unified.Models.AIToolOutputAvailableEventData | Property | System.Nullable`1[System.Boolean] Dynamic
+AIHappey.Unified.Models.AIToolOutputAvailableEventData | Property | System.Nullable`1[System.Boolean] Preliminary
+AIHappey.Unified.Models.AIToolOutputAvailableEventData | Property | System.Nullable`1[System.Boolean] ProviderExecuted
+AIHappey.Unified.Models.AIToolOutputAvailableEventData | Property | System.Object Output
+AIHappey.Unified.Models.AIToolOutputAvailableEventData | Property | System.String ToolName
+AIHappey.Unified.Models.AIToolOutputErrorEventData | Constructor | Void .ctor() | 
+AIHappey.Unified.Models.AIToolOutputErrorEventData | Method | System.Collections.Generic.Dictionary`2[System.String,System.Collections.Generic.Dictionary`2[System.String,System.Object]] get_ProviderMetadata() | 
+AIHappey.Unified.Models.AIToolOutputErrorEventData | Method | System.Nullable`1[System.Boolean] get_Dynamic() | 
+AIHappey.Unified.Models.AIToolOutputErrorEventData | Method | System.Nullable`1[System.Boolean] get_ProviderExecuted() | 
+AIHappey.Unified.Models.AIToolOutputErrorEventData | Method | System.String get_ErrorText() | 
+AIHappey.Unified.Models.AIToolOutputErrorEventData | Method | System.String get_ToolCallId() | 
+AIHappey.Unified.Models.AIToolOutputErrorEventData | Method | Void set_Dynamic(System.Nullable`1[System.Boolean]) | value
+AIHappey.Unified.Models.AIToolOutputErrorEventData | Method | Void set_ErrorText(System.String) | value
+AIHappey.Unified.Models.AIToolOutputErrorEventData | Method | Void set_ProviderExecuted(System.Nullable`1[System.Boolean]) | value
+AIHappey.Unified.Models.AIToolOutputErrorEventData | Method | Void set_ProviderMetadata(System.Collections.Generic.Dictionary`2[System.String,System.Collections.Generic.Dictionary`2[System.String,System.Object]]) | value
+AIHappey.Unified.Models.AIToolOutputErrorEventData | Method | Void set_ToolCallId(System.String) | value
+AIHappey.Unified.Models.AIToolOutputErrorEventData | Property | System.Collections.Generic.Dictionary`2[System.String,System.Collections.Generic.Dictionary`2[System.String,System.Object]] ProviderMetadata
+AIHappey.Unified.Models.AIToolOutputErrorEventData | Property | System.Nullable`1[System.Boolean] Dynamic
+AIHappey.Unified.Models.AIToolOutputErrorEventData | Property | System.Nullable`1[System.Boolean] ProviderExecuted
+AIHappey.Unified.Models.AIToolOutputErrorEventData | Property | System.String ErrorText
+AIHappey.Unified.Models.AIToolOutputErrorEventData | Property | System.String ToolCallId
+AIHappey.Unified.Models.AIUsage | Constructor | Void .ctor() | 
+AIHappey.Unified.Models.AIUsage | Method | System.Collections.Generic.Dictionary`2[System.String,System.Text.Json.JsonElement] get_AdditionalProperties() | 
+AIHappey.Unified.Models.AIUsage | Method | System.Nullable`1[System.Int32] get_CacheWriteInputTokens() | 
+AIHappey.Unified.Models.AIUsage | Method | System.Nullable`1[System.Int32] get_CachedInputTokens() | 
+AIHappey.Unified.Models.AIUsage | Method | System.Nullable`1[System.Int32] get_InputTokens() | 
+AIHappey.Unified.Models.AIUsage | Method | System.Nullable`1[System.Int32] get_OutputTokens() | 
+AIHappey.Unified.Models.AIUsage | Method | System.Nullable`1[System.Int32] get_ReasoningTokens() | 
+AIHappey.Unified.Models.AIUsage | Method | System.Nullable`1[System.Int32] get_TotalTokens() | 
+AIHappey.Unified.Models.AIUsage | Method | Void set_AdditionalProperties(System.Collections.Generic.Dictionary`2[System.String,System.Text.Json.JsonElement]) | value
+AIHappey.Unified.Models.AIUsage | Method | Void set_CacheWriteInputTokens(System.Nullable`1[System.Int32]) | value
+AIHappey.Unified.Models.AIUsage | Method | Void set_CachedInputTokens(System.Nullable`1[System.Int32]) | value
+AIHappey.Unified.Models.AIUsage | Method | Void set_InputTokens(System.Nullable`1[System.Int32]) | value
+AIHappey.Unified.Models.AIUsage | Method | Void set_OutputTokens(System.Nullable`1[System.Int32]) | value
+AIHappey.Unified.Models.AIUsage | Method | Void set_ReasoningTokens(System.Nullable`1[System.Int32]) | value
+AIHappey.Unified.Models.AIUsage | Method | Void set_TotalTokens(System.Nullable`1[System.Int32]) | value
+AIHappey.Unified.Models.AIUsage | Property | System.Collections.Generic.Dictionary`2[System.String,System.Text.Json.JsonElement] AdditionalProperties
+AIHappey.Unified.Models.AIUsage | Property | System.Nullable`1[System.Int32] CacheWriteInputTokens
+AIHappey.Unified.Models.AIUsage | Property | System.Nullable`1[System.Int32] CachedInputTokens
+AIHappey.Unified.Models.AIUsage | Property | System.Nullable`1[System.Int32] InputTokens
+AIHappey.Unified.Models.AIUsage | Property | System.Nullable`1[System.Int32] OutputTokens
+AIHappey.Unified.Models.AIUsage | Property | System.Nullable`1[System.Int32] ReasoningTokens
+AIHappey.Unified.Models.AIUsage | Property | System.Nullable`1[System.Int32] TotalTokens
+AIHappey.Vercel.Extensions.VercelUnifiedRequestExtensions | Method | AIHappey.Unified.Models.AIRequest ToUnifiedRequest(AIHappey.Vercel.Models.ChatRequest, System.String) | request, providerId
+AIHappey.Vercel.Mapping.VercelUnifiedMapper | Method | AIHappey.Unified.Models.AIEventEnvelope ToUnifiedEvent(AIHappey.Vercel.Models.UIMessagePart) | part
+AIHappey.Vercel.Mapping.VercelUnifiedMapper | Method | AIHappey.Unified.Models.AIInputItem ToUnifiedInputItem(AIHappey.Vercel.Models.UIMessage) | message
+AIHappey.Vercel.Mapping.VercelUnifiedMapper | Method | AIHappey.Vercel.Models.UIMessage ToUIMessage(AIHappey.Unified.Models.AIOutputItem, System.String) | item, id=null
+AIHappey.Vercel.Mapping.VercelUnifiedMapper | Method | System.Collections.Generic.IEnumerable`1[AIHappey.Vercel.Models.UIMessagePart] ToUIMessagePart(AIHappey.Unified.Models.AIEventEnvelope, System.String) | envelope, providerId
+Type: AIHappey.ChatCompletions.Mapping.ChatCompletionsUnifiedMapper
+Type: AIHappey.ChatCompletions.Mapping.ChatCompletionsUnifiedMapper+ChatCompletionsStreamMappingState
+Type: AIHappey.Interactions.Mapping.InteractionsUnifiedMapper
+Type: AIHappey.Interactions.Mapping.InteractionsUnifiedMapper+InteractionStreamMappingState
+Type: AIHappey.Messages.Mapping.MessagesUnifiedMapper
+Type: AIHappey.Messages.Mapping.MessagesUnifiedMapper+MessagesReverseStreamMappingState
+Type: AIHappey.Messages.Mapping.MessagesUnifiedMapper+MessagesStreamMappingState
+Type: AIHappey.Messages.Mapping.MessagesUsageExtensions
+Type: AIHappey.Responses.Mapping.ResponsesUnifiedMapper
+Type: AIHappey.Responses.Mapping.ResponsesUnifiedMapper+ResponseReverseStreamState
+Type: AIHappey.Responses.Mapping.ResponsesUnifiedMapper+ResponseStreamMappingState
+Type: AIHappey.Unified.Models.AIAbortEventData
+Type: AIHappey.Unified.Models.AIContentPart
+Type: AIHappey.Unified.Models.AIDataEventData
+Type: AIHappey.Unified.Models.AIErrorEventData
+Type: AIHappey.Unified.Models.AIEventEnvelope
+Type: AIHappey.Unified.Models.AIFileContentPart
+Type: AIHappey.Unified.Models.AIFileEventData
+Type: AIHappey.Unified.Models.AIFinishEventData
+Type: AIHappey.Unified.Models.AIFinishGatewayMetadata
+Type: AIHappey.Unified.Models.AIFinishMessageMetadata
+Type: AIHappey.Unified.Models.AIInput
+Type: AIHappey.Unified.Models.AIInputItem
+Type: AIHappey.Unified.Models.AIOutput
+Type: AIHappey.Unified.Models.AIOutputItem
+Type: AIHappey.Unified.Models.AIReasoningContentPart
+Type: AIHappey.Unified.Models.AIReasoningDeltaEventData
+Type: AIHappey.Unified.Models.AIReasoningEndEventData
+Type: AIHappey.Unified.Models.AIReasoningStartEventData
+Type: AIHappey.Unified.Models.AIRequest
+Type: AIHappey.Unified.Models.AIResponse
+Type: AIHappey.Unified.Models.AISourceUrlEventData
+Type: AIHappey.Unified.Models.AIStreamEvent
+Type: AIHappey.Unified.Models.AITextContentPart
+Type: AIHappey.Unified.Models.AITextDeltaEventData
+Type: AIHappey.Unified.Models.AITextEndEventData
+Type: AIHappey.Unified.Models.AITextStartEventData
+Type: AIHappey.Unified.Models.AIToolApprovalRequestEventData
+Type: AIHappey.Unified.Models.AIToolCallApproval
+Type: AIHappey.Unified.Models.AIToolCallContentPart
+Type: AIHappey.Unified.Models.AIToolCallContentPartExtensions
+Type: AIHappey.Unified.Models.AIToolDefinition
+Type: AIHappey.Unified.Models.AIToolInputAvailableEventData
+Type: AIHappey.Unified.Models.AIToolInputDeltaEventData
+Type: AIHappey.Unified.Models.AIToolInputStartEventData
+Type: AIHappey.Unified.Models.AIToolOutputAvailableEventData
+Type: AIHappey.Unified.Models.AIToolOutputErrorEventData
+Type: AIHappey.Unified.Models.AIUsage
+Type: AIHappey.Vercel.Extensions.VercelUnifiedRequestExtensions
+Type: AIHappey.Vercel.Mapping.VercelUnifiedMapper
