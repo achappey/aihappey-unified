@@ -59,7 +59,12 @@ public static partial class ChatCompletionsUnifiedMapper
         }
 
         if (!emittedUiEnvelope && !HasToolCallDelta(chunk) && !HasSourceUrlPayload(chunk, providerId))
+        {
+            if (HasUsagePayload(chunk))
+                yield return chunk.ToUnifiedStreamEvent(providerId);
+
             yield break;
+        }
 
         foreach (var sourceEvent in MapSourceUrlEvents(chunk, providerId, timestamp, metadata, state))
             yield return sourceEvent;
@@ -701,7 +706,7 @@ public static partial class ChatCompletionsUnifiedMapper
         var id = ExtractValue<string>(chunk, "id");
         var model = ExtractValue<string>(chunk, "model");
         var created = ExtractValue<long?>(chunk, "created") ?? 0;
-        var hasUsage = chunk.TryGetProperty("usage", out var usage) && usage.ValueKind != JsonValueKind.Null;
+        var hasUsage = HasUsagePayload(chunk);
         var hasSourcePayload = HasTopLevelProviderSourcePayload(chunk);
 
         var hasChoices = chunk.TryGetProperty("choices", out var choices)
@@ -715,6 +720,10 @@ public static partial class ChatCompletionsUnifiedMapper
                && !hasSourcePayload
                && !hasChoices;
     }
+
+    private static bool HasUsagePayload(JsonElement chunk)
+        => chunk.TryGetProperty("usage", out var usage)
+           && usage.ValueKind is not JsonValueKind.Null and not JsonValueKind.Undefined;
 
     private static bool HasTopLevelProviderSourcePayload(JsonElement chunk)
         => HasArrayProperty(chunk, "search_results")

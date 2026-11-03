@@ -74,6 +74,7 @@ public static partial class ChatCompletionsUnifiedMapper
             .. request.Metadata.GetChatCompletionToolDefinitions(providerId) ?? []];
 
         var messages = ToChatMessages(request.Input, enforceFlatContent).ToList();
+        var streamOptions = ExtractMetadataElement(request.Metadata, "chatcompletions.request.stream_options");
 
         if (!string.IsNullOrWhiteSpace(request.Instructions))
             messages.Insert(0, new ChatMessage()
@@ -105,10 +106,9 @@ public static partial class ChatCompletionsUnifiedMapper
                     && TryGetString(request.ToolChoice) is null
                     ? ToJsonElement(request.ToolChoice).ReadChatContract<ChatCompletionToolChoice>()
                     : new ChatCompletionToolChoiceMode { Mode = normalizedToolChoice ?? "auto" },
-            StreamOptions = new StreamOptions()
-            {
-                IncludeUsage = true
-            },
+            StreamOptions = streamOptions is { ValueKind: JsonValueKind.Object }
+                ? streamOptions.Value.ReadChatContract<StreamOptions>()
+                : new StreamOptions { IncludeUsage = true },
             ResponseFormat = request.ResponseFormat is ChatCompletionResponseFormat format ? format
                 : request.ResponseFormat is null ? null
                 : ToJsonElement(request.ResponseFormat).ReadChatContract<ChatCompletionResponseFormat>(),

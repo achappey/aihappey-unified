@@ -118,6 +118,18 @@ public sealed class InteractionsCurrentContractMappingTests
     }
 
     [Fact]
+    public void Requires_action_interaction_finishes_as_tool_calls()
+    {
+        var finish = new InteractionCompletedEvent
+        {
+            Interaction = new Interaction { Status = new InteractionStatus("requires_action") }
+        };
+        var mapped = finish.ToUnifiedStreamEvent("google").Single();
+
+        Assert.Equal("tool-calls", Assert.IsType<AIFinishEventData>(mapped.Event.Data).FinishReason);
+    }
+
+    [Fact]
     public void Audio_sample_rate_survives_content_replay_and_typed_stream_deltas()
     {
         var native = new InteractionRequest
