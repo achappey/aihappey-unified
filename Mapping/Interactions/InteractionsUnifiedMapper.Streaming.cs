@@ -1080,7 +1080,12 @@ public static partial class InteractionsUnifiedMapper
                             Response = complete.Interaction,
                             Model = complete.Interaction?.Model ?? complete.Interaction?.Agent,
                             CompletedAt = complete.Interaction?.Updated,
-                            FinishReason = complete.Interaction?.Status == "completed" ? "stop" : "other",
+                            FinishReason = complete.Interaction?.Status?.KnownValue switch
+                            {
+                                InteractionStatusKind.Completed => "stop",
+                                InteractionStatusKind.RequiresAction => "tool-calls",
+                                _ => "other"
+                            },
                             InputTokens = complete.Interaction?.Usage?.TotalInputTokens,
                             OutputTokens = complete.Interaction?.Usage?.TotalOutputTokens,
                             TotalTokens = complete.Interaction?.Usage?.TotalTokens
