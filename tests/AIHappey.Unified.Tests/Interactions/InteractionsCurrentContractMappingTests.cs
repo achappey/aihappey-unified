@@ -117,16 +117,18 @@ public sealed class InteractionsCurrentContractMappingTests
         Assert.Null(Assert.IsType<InteractionCompletedEvent>(finish.ToInteractionStreamEvent()).Interaction!.Status);
     }
 
-    [Fact]
-    public void Requires_action_interaction_finishes_as_tool_calls()
+    [Theory]
+    [InlineData("completed", "stop")]
+    [InlineData("requires_action", "tool-calls")]
+    public void Interaction_completion_status_maps_finish_reason(string status, string expectedFinishReason)
     {
         var finish = new InteractionCompletedEvent
         {
-            Interaction = new Interaction { Status = new InteractionStatus("requires_action") }
+            Interaction = new Interaction { Status = new InteractionStatus(status) }
         };
         var mapped = finish.ToUnifiedStreamEvent("google").Single();
 
-        Assert.Equal("tool-calls", Assert.IsType<AIFinishEventData>(mapped.Event.Data).FinishReason);
+        Assert.Equal(expectedFinishReason, Assert.IsType<AIFinishEventData>(mapped.Event.Data).FinishReason);
     }
 
     [Fact]
