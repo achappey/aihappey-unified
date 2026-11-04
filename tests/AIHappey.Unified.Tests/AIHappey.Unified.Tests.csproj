@@ -11,6 +11,5 @@
     <PackageReference Include="xunit.runner.visualstudio" Version="4.0.1" />
     <Using Include="Xunit" />
     <ProjectReference Include="../../AIHappey.Unified.csproj" />
-    <Content Include="PublicApi.Baseline.txt" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>

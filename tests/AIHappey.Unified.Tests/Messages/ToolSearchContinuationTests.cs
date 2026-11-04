@@ -44,7 +44,7 @@ public sealed class ToolSearchContinuationTests
         var mapped = request.ToMessagesRequest("anthropic");
         Assert.Equal("tool", mapped.ToolChoice?.Type);
         Assert.Equal(disable, mapped.ToolChoice?.DisableParallelToolUse);
-        Assert.Equal("read_resource", mapped.ToolChoice?.AdditionalProperties?["name"].GetString());
+        Assert.Equal("read_resource", mapped.ToolChoice?.Name);
     }
 
     [Fact]

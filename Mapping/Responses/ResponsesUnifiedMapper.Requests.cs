@@ -29,7 +29,7 @@ public static partial class ResponsesUnifiedMapper
             ResponseFormat = ToUnifiedResponseFormat(request.Text),
             Verbosity = ExtractResponsesVerbosity(request.Text),
             Headers = request.Headers,
-            Metadata = CaptureResponseMetadata(request, request.Metadata, request.AdditionalProperties)
+            Metadata = CaptureNativeRequestMetadata(request, providerId)
         };
     }
 
@@ -133,7 +133,7 @@ public static partial class ResponsesUnifiedMapper
 
         var metadata = request.Metadata ?? [];
 
-        return new ResponseRequest
+        var native = new ResponseRequest
         {
             Model = request.Model,
             Instructions = request.Instructions,
@@ -150,7 +150,7 @@ public static partial class ResponsesUnifiedMapper
             PromptCacheKey = request.Id,
             Metadata = metadata.ContainsKey("responses.metadata")
                 ? ExtractObject<Dictionary<string, object?>>(metadata, "responses.metadata")
-                : request.Metadata,
+                : null,
             Store = false,
             ServiceTier = ExtractValue<string>(metadata, "responses.service_tier"),
             Text = BuildResponsesText(request, metadata),
@@ -172,6 +172,18 @@ public static partial class ResponsesUnifiedMapper
             Reasoning = ExtractObject<Reasoning>(metadata, "responses.reasoning"),
             ContextManagement = ExtractObject<JsonElement[]>(metadata, "responses.context_management")
         };
+        var result = NativeRequestOptions.Apply(native, metadata, providerId, includeProviderTools: true);
+        result.Headers = NativeRequestOptions.Headers(request.Metadata, providerId, request.Headers);
+        result.ExecutionMetadata = new(metadata);
+        return result;
+    }
+
+    private static Dictionary<string, object?> CaptureNativeRequestMetadata(ResponseRequest request, string providerId)
+    {
+        var metadata = CaptureResponseMetadata(request, null, request.AdditionalProperties);
+        metadata["responses.metadata"] = request.Metadata;
+        metadata[providerId] = NativeRequestOptions.Capture(JsonSerializer.SerializeToElement(request, ResponseJson.Default));
+        return metadata;
     }
 
     private static object BuildResponsesText(AIRequest request, Dictionary<string, object?> metadata)

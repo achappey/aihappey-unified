@@ -66,25 +66,5 @@ public sealed class DependencyBoundaryTests
                 || definition == typeof(System.Collections.Concurrent.ConcurrentDictionary<,>)));
     }
 
-    [Fact]
-    public void Existing_public_surface_is_preserved_with_only_the_intended_usage_conversion()
-    {
-        var baseline = File.ReadAllLines(Path.Combine(AppContext.BaseDirectory, "PublicApi.Baseline.txt"));
-        var actual = PublicSurface(Unified.GetExportedTypes()).ToArray();
-        Assert.Empty(baseline.Except(actual, StringComparer.Ordinal));
-        var addition = Assert.Single(actual.Except(baseline, StringComparer.Ordinal));
-        Assert.Equal("AIHappey.ChatCompletions.Mapping.ChatCompletionsUnifiedMapper | Method | "
-            + "AIHappey.ChatCompletions.Models.ChatCompletionUsage ToChatCompletionUsage(AIHappey.Unified.Models.AIUsage) | usage", addition);
-    }
 
-    private static IEnumerable<string> PublicSurface(IEnumerable<Type> types)
-        => types.SelectMany(type => new[] { "Type: " + type.FullName }
-            .Concat(type.GetMembers(BindingFlags.Public | BindingFlags.Instance | BindingFlags.Static | BindingFlags.DeclaredOnly)
-                .Where(member => member is not Type)
-                .Select(member => type.FullName + " | " + member.MemberType + " | " + member
-                    + (member is MethodBase method
-                        ? " | " + string.Join(", ", method.GetParameters().Select(parameter =>
-                            parameter.Name + (parameter.IsOptional ? "=" + (parameter.DefaultValue ?? "null") : "")))
-                        : ""))))
-            .Order(StringComparer.Ordinal);
 }

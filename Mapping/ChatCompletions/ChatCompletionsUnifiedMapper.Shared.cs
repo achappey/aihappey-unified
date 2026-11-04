@@ -288,7 +288,7 @@ public static partial class ChatCompletionsUnifiedMapper
 
     private static Dictionary<string, JsonElement>? BuildChatCompletionRequestAdditionalProperties(AIRequest request)
     {
-        var additional = new Dictionary<string, JsonElement>(StringComparer.OrdinalIgnoreCase);
+        var additional = new Dictionary<string, JsonElement>(StringComparer.Ordinal);
 
         var raw = ExtractMetadataElement(request.Metadata, "chatcompletions.request.raw");
         if (raw is { ValueKind: JsonValueKind.Object })

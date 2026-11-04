@@ -39,6 +39,7 @@ public static partial class ChatCompletionsUnifiedMapper
             : [];
 
         var metadata = BuildUnifiedRequestMetadata(request);
+        metadata[providerId] = NativeRequestOptions.Capture(request);
 
         return new AIRequest
         {
@@ -155,24 +156,9 @@ public static partial class ChatCompletionsUnifiedMapper
             AdditionalProperties = additionalProperties
         };
 
-        providerId.ApplyProviderOptions(request.Metadata, options.AdditionalProperties ??=
-                [], ["tools"]);
-
-        if (request.Metadata?.TryGetValue(providerId, out var providerOptions) == true)
-        {
-            var providerEnvelope = ToJsonElement(providerOptions);
-            // Tools were materialized above. Do not append them again when the
-            // provider applies its default transport properties.
-            options.SetProviderMetadata(new()
-            {
-                [providerId] = providerEnvelope.ValueKind == JsonValueKind.Object
-                    ? providerEnvelope.EnumerateObject().Where(p => p.Name != "tools")
-                        .ToDictionary(p => p.Name, p => p.Value.Clone())
-                    : providerOptions
-            });
-        }
-
-        return options;
+        var result = NativeRequestOptions.Apply(options, request.Metadata, providerId);
+        result.Headers = NativeRequestOptions.Headers(request.Metadata, providerId, request.Headers);
+        return result;
     }
 
     private static Dictionary<string, object?> BuildUnifiedRequestMetadata(JsonElement request)
@@ -184,10 +170,6 @@ public static partial class ChatCompletionsUnifiedMapper
 
         foreach (var prop in request.EnumerateObject())
             metadata[$"chatcompletions.request.{prop.Name}"] = prop.Value.Clone();
-
-        if (request.TryGetProperty("providerMetadata", out var providers) && providers.ValueKind == JsonValueKind.Object)
-            foreach (var property in providers.EnumerateObject())
-                metadata[property.Name] = property.Value.Clone();
 
         var unmapped = new Dictionary<string, JsonElement>();
         foreach (var prop in request.EnumerateObject())

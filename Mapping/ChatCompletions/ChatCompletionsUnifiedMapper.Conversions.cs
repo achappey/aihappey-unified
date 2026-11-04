@@ -79,9 +79,4 @@ public static partial class ChatCompletionsUnifiedMapper
         return usage;
     }
 
-    private static void SetProviderMetadata(this ChatCompletionOptions options, Dictionary<string, object?>? metadata)
-    {
-        if (metadata is not null)
-            (options.AdditionalProperties ??= [])["providerMetadata"] = JsonSerializer.SerializeToElement(metadata, JsonSerializerOptions.Web);
-    }
 }

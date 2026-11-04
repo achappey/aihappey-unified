@@ -34,7 +34,7 @@ public static partial class MessagesUnifiedMapper
             ToolChoice = request.ToolChoice is null ? null : JsonSerializer.SerializeToElement(request.ToolChoice, Json),
             Tools = request.Tools?.Select(ToUnifiedTool).ToList(),
             Headers = request.Headers,
-            Metadata = BuildUnifiedRequestMetadata(request)
+            Metadata = BuildUnifiedRequestMetadata(request, providerId)
         };
     }
 
@@ -110,10 +110,7 @@ public static partial class MessagesUnifiedMapper
                          ? storedSystem
                          : !string.IsNullOrWhiteSpace(request.Instructions) ? new MessagesContent(request.Instructions) : null);
 
-        var metadataObj = metadata.ContainsKey("messages.request.metadata")
-            ? ExtractObject<MessagesRequestMetadata>(metadata, "messages.request.metadata")
-            : JsonSerializer.Deserialize<MessagesRequestMetadata>(
-                JsonSerializer.Serialize(metadata, JsonSerializerOptions.Web));
+        var metadataObj = ExtractObject<MessagesRequestMetadata>(metadata, "messages.request.metadata");
 
         var providerTools = request.Metadata?
                    .GetMessageToolDefinitions(providerId)
@@ -200,11 +197,11 @@ public static partial class MessagesUnifiedMapper
             AdditionalProperties = ExtractObject<Dictionary<string, JsonElement>>(metadata, "messages.request.unmapped")
         };
 
-        providerId.ApplyProviderOptions(metadata, result.AdditionalProperties ??=
-                       [], ["tools", "anthropic-beta", "output_config", "compaction", "context_management"]);
-
         if (result.Container != null)
             result.AdditionalProperties?.Remove("container");
+
+        result = NativeRequestOptions.Apply(result, metadata, providerId);
+        result.Headers = NativeRequestOptions.Headers(request.Metadata, providerId, request.Headers);
 
         return result;
     }
@@ -239,7 +236,7 @@ public static partial class MessagesUnifiedMapper
                 if (!source.TryGetProperty("name", out var name) || name.ValueKind != JsonValueKind.String
                     || string.IsNullOrWhiteSpace(name.GetString()))
                     throw new ArgumentException("A specific Messages tool choice requires a tool name.", nameof(choice));
-                result.AdditionalProperties = new() { ["name"] = name.Clone() };
+                result.Name = name.GetString();
             }
         }
         return result;
@@ -333,7 +330,7 @@ public static partial class MessagesUnifiedMapper
         return blocks.Count == 0 ? null : CreateMessagesContentFromBlocks(blocks);
     }
 
-    private static Dictionary<string, object?> BuildUnifiedRequestMetadata(MessagesRequest request)
+    private static Dictionary<string, object?> BuildUnifiedRequestMetadata(MessagesRequest request, string providerId)
     {
         var raw = JsonSerializer.SerializeToElement(request, Json);
         var metadata = new Dictionary<string, object?>
@@ -364,6 +361,7 @@ public static partial class MessagesUnifiedMapper
         }
 
         metadata["messages.request.unmapped"] = JsonSerializer.SerializeToElement(unmapped, Json);
+        metadata[providerId] = NativeRequestOptions.Capture(JsonSerializer.SerializeToElement(request, MessagesJson.Default));
         return metadata;
     }
 
@@ -512,56 +510,4 @@ public static partial class MessagesUnifiedMapper
     }
 
 
-    public static T? GetProviderOption<T>(
-         this MessagesRequestMetadata metadata,
-        string providerId,
-        string key)
-    {
-        if (metadata is null)
-            return default;
-
-        if (metadata.AdditionalProperties?.TryGetValue(providerId, out var provider) != true)
-            return default;
-
-        if (!provider.TryGetProperty(key, out var value))
-            return default;
-
-        if (value.ValueKind is JsonValueKind.Null or JsonValueKind.Undefined)
-            return default;
-
-        return value.Deserialize<T>(JsonSerializerOptions.Web);
-    }
-
-    public static List<MessageToolDefinition>? GetMessageToolDefinitions(
-        this MessagesRequestMetadata metadata,
-        string providerId)
-    {
-        if (metadata is null)
-            return null;
-
-        if (metadata.AdditionalProperties?.TryGetValue(providerId, out var providerObj) != true)
-            return null;
-
-        if (!providerObj.TryGetProperty("tools", out var toolsEl) ||
-            toolsEl.ValueKind != JsonValueKind.Array)
-            return null;
-
-        var result = new List<MessageToolDefinition>();
-
-        foreach (var toolEl in toolsEl.EnumerateArray())
-        {
-            try
-            {
-                var def = toolEl.Deserialize<MessageToolDefinition>(JsonSerializerOptions.Web);
-                if (def != null)
-                    result.Add(def);
-            }
-            catch
-            {
-                // ignore invalid tool entries (passthrough safety)
-            }
-        }
-
-        return result.Count > 0 ? result : null;
-    }
 }

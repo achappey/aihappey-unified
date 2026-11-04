@@ -27,14 +27,16 @@ public sealed class ResponsesFidelityTests
     }
 
     [Fact]
-    public void Absent_native_options_do_not_erase_existing_metadata_configuration()
+    public void Metadata_that_resembles_internal_configuration_does_not_activate_options()
     {
         var native = new ResponseRequest
         {
             Model = "test",
             Metadata = new() { ["responses.reasoning"] = new Reasoning { Effort = "high" } }
         };
-        Assert.Equal("high", native.ToUnifiedRequest("openai").ToResponseRequest("openai").Reasoning?.Effort);
+        var replay = native.ToUnifiedRequest("openai").ToResponseRequest("openai");
+        Assert.Null(replay.Reasoning);
+        Assert.NotNull(replay.Metadata!["responses.reasoning"]);
     }
 
     [Fact]
