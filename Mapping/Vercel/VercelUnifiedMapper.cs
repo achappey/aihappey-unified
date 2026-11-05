@@ -233,7 +233,12 @@ public static class VercelUnifiedMapper
             "tool-approval-request" => new ToolApprovalRequestUIPart
             {
                 ApprovalId = GetValue<string>(data, "approvalId") ?? string.Empty,
-                ToolCallId = GetValue<string>(data, "toolCallId") ?? string.Empty
+                ToolCallId = GetValue<string>(data, "toolCallId") ?? string.Empty,
+                Signature = GetValue<string>(data, "signature"),
+                IsAutomatic = GetValue<bool?>(data, "isAutomatic"),
+                ApprovalDescriptor = GetValue<object>(data, "approvalDescriptor"),
+                Reason = GetValue<string>(data, "reason"),
+                InputSchemaInput = GetValue<object>(data, "inputSchemaInput")
             },
             "tool-input-start" => new ToolCallStreamingStartPart
             {
@@ -1182,7 +1187,12 @@ public static class VercelUnifiedMapper
         {
             Approved = approval.Approved,
             Id = approval.Id,
-            Reason = approval.Reason
+            Reason = approval.Reason,
+            Signature = approval.Signature,
+            IsAutomatic = approval.IsAutomatic,
+            Descriptor = approval.Descriptor,
+            RequestReason = approval.RequestReason,
+            InputSchemaInput = approval.InputSchemaInput
         };
     }
 
@@ -1195,7 +1205,12 @@ public static class VercelUnifiedMapper
         {
             Approved = approval.Approved,
             Id = approval.Id ?? string.Empty,
-            Reason = approval.Reason
+            Reason = approval.Reason,
+            Signature = approval.Signature,
+            IsAutomatic = approval.IsAutomatic,
+            Descriptor = approval.Descriptor,
+            RequestReason = approval.RequestReason,
+            InputSchemaInput = approval.InputSchemaInput
         };
     }
 

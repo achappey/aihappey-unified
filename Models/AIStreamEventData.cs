@@ -62,6 +62,21 @@ public sealed class AIToolApprovalRequestEventData
 
     [JsonPropertyName("toolCallId")]
     public required string ToolCallId { get; init; }
+
+    [JsonPropertyName("signature")]
+    public string? Signature { get; init; }
+
+    [JsonPropertyName("isAutomatic")]
+    public bool? IsAutomatic { get; init; }
+
+    [JsonPropertyName("approvalDescriptor")]
+    public object? ApprovalDescriptor { get; init; }
+
+    [JsonPropertyName("reason")]
+    public string? Reason { get; init; }
+
+    [JsonPropertyName("inputSchemaInput")]
+    public object? InputSchemaInput { get; init; }
 }
 
 public sealed class AIToolInputStartEventData

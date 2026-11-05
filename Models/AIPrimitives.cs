@@ -91,6 +91,16 @@ public sealed class AIToolCallApproval
     public string? Id { get; init; }
 
     public string? Reason { get; init; }
+
+    public bool? IsAutomatic { get; init; }
+
+    public string? Signature { get; init; }
+
+    public object? Descriptor { get; init; }
+
+    public string? RequestReason { get; init; }
+
+    public object? InputSchemaInput { get; init; }
 }
 
 public sealed class AIToolCallContentPart : AIContentPart
