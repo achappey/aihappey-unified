@@ -34,6 +34,12 @@ public static partial class ResponsesUnifiedMapper
 
     private static ResponseOutputItem CreateCanonicalResponseOutput(ResponseReverseItemState state, string status)
     {
+        if (IsSyntheticReverseTool(state))
+            return SyntheticResponsesTool.Create(state.OutputItemId, state.ToolName ?? state.Title ?? "tool",
+                state.Input ?? (object?)state.SerializedInput, state.Output,
+                state.SyntheticProviderId ?? state.ProviderMetadata?.Keys.FirstOrDefault() ?? "provider",
+                state.ProviderMetadata, status, state.Title);
+
         var id = state.OutputItemId;
         var callId = state.CallId ?? state.ItemId;
         var input = state.SerializedInput ?? (state.ToolInputBuffer.Length > 0 ? state.ToolInputBuffer.ToString() : SerializePayload(state.Input, "{}"));
@@ -153,6 +159,12 @@ public static partial class ResponsesUnifiedMapper
         item.AdditionalProperties = extensions.Count == 0 ? null : extensions;
         return item;
     }
+
+    private static bool IsSyntheticReverseTool(ResponseReverseItemState state)
+        => state.ProviderExecuted == true && state.ItemType == "mcp_call"
+            && state.ToolName != "mcp_call"
+            && state.ProviderMetadata?.Values.Any(scoped => GetMetadataString(scoped, "server_label") is { } label
+                && label != SyntheticResponsesTool.ServerLabel) != true;
 
     private static T? ReverseOutputValue<T>(ResponseReverseItemState state, string key)
     {

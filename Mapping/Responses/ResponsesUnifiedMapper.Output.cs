@@ -213,6 +213,7 @@ public static partial class ResponsesUnifiedMapper
                     ToolName = tool.ToolName, ProviderExecuted = tool.ProviderExecuted
                 }),
                 ToolName = tool.ToolName, Title = tool.Title, ProviderExecuted = tool.ProviderExecuted,
+                SyntheticProviderId = providerId,
                 Input = tool.Input, Output = tool.Output, SerializedInput = SerializePayload(tool.Input, "{}"),
                 ProviderMetadata = new() { [providerId] = (ExtractObject<Dictionary<string, object?>>(toolMetadata, providerId)
                     ?? toolMetadata).ToDictionary(pair => pair.Key, pair => pair.Value!) },

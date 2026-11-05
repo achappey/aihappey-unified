@@ -16,6 +16,8 @@ public static partial class ResponsesUnifiedMapper
         internal ResponseShellStreamState Shell { get; set; } = new();
         internal HashSet<string> CodeInterpreterTerminalOutputs { get; } = new(StringComparer.Ordinal);
         internal ToolSearchStreamState ToolSearch { get; set; } = new();
+        internal HashSet<string> SyntheticToolIds { get; } = new(StringComparer.Ordinal);
+        internal HashSet<string> CompletedSyntheticTools { get; } = new(StringComparer.Ordinal);
     }
 
     public static IEnumerable<AIStreamEvent> ToUnifiedStreamEvent(
@@ -68,6 +70,8 @@ public static partial class ResponsesUnifiedMapper
         ClearCodeInterpreterStreamState(state);
         ClearToolSearchStreamState(state);
         state.CompletedApplyPatchCalls.Clear();
+        state.SyntheticToolIds.Clear();
+        state.CompletedSyntheticTools.Clear();
         state.MultiAgentActive = false;
     }
 
@@ -432,6 +436,20 @@ public static partial class ResponsesUnifiedMapper
         string providerId,
         ResponseStreamMappingState state)
     {
+        if (part is ResponseOutputItemAdded gatewayAdded && IsSyntheticStreamItem(gatewayAdded.Item))
+        {
+            if (gatewayAdded.Item.Id is { } id) state.SyntheticToolIds.Add(id);
+            yield break;
+        }
+        if (part is ResponseOutputItemDone gatewayDone && IsSyntheticStreamItem(gatewayDone.Item))
+        {
+            foreach (var envelope in CreateSyntheticToolEnvelopes(gatewayDone.Item, providerId, state)) yield return envelope;
+            yield break;
+        }
+        if (part is ResponseMcpCallArgumentsDone gatewayArgs && state.SyntheticToolIds.Contains(gatewayArgs.ItemId ?? ""))
+            yield break;
+        if (part is ResponseMcpCallArgumentsDelta gatewayDelta && state.SyntheticToolIds.Contains(gatewayDelta.ItemId ?? ""))
+            yield break;
         switch (part)
         {
             case ResponseCreated created:

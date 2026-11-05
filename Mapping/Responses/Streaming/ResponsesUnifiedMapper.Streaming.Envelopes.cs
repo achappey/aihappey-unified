@@ -163,6 +163,17 @@ public static partial class ResponsesUnifiedMapper
     {
         try
         {
+            foreach (var raw in response.Output)
+            {
+                var json = JsonSerializer.SerializeToElement(raw, ResponseJson.Default);
+                if (json.ValueKind == JsonValueKind.Object
+                    && json.TryGetProperty("type", out var kind) && kind.GetString() == "mcp_call"
+                    && json.TryGetProperty("server_label", out var label) && label.GetString() == SyntheticResponsesTool.ServerLabel)
+                {
+                    var item = json.Deserialize<AIHappey.Responses.Streaming.ResponseStreamItem>(ResponseJson.Default)!;
+                    foreach (var envelope in CreateSyntheticToolEnvelopes(item, providerId, state)) yield return envelope;
+                }
+            }
             foreach (var envelope in CreatePendingShellCompletionEnvelopes(state, providerId, response))
                 yield return envelope;
 

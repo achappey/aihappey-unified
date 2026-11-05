@@ -712,6 +712,17 @@ public static partial class ResponsesUnifiedMapper
             "program",
             StringComparison.OrdinalIgnoreCase);
         var metadata = CreateResponsesToolMetadata(providerId, type, rawItem, map, outputIndex);
+        if (SyntheticResponsesTool.IsGatewayCall(type, GetValue<string>(map, "server_label")))
+        {
+            item = new AIOutputItem
+            {
+                Type = "message", Role = role,
+                Content = [CreateSyntheticToolPart(GetValue<string>(map, "id")!, GetValue<string>(map, "name")!,
+                    GetValue<string>(map, "arguments") ?? "{}", GetValue<string>(map, "output")!,
+                    GetValue<string>(map, "status"), providerId)]
+            };
+            return true;
+        }
         var toolPart = type switch
         {
             "compaction" => CreateUnifiedCompactionToolPart(

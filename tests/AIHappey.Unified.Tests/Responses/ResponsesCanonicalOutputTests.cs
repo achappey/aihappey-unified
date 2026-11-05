@@ -340,12 +340,13 @@ public sealed class ResponsesCanonicalOutputTests
         var snapshot = JsonSerializer.SerializeToElement(done.Item, ResponseJson.Default);
         var finish = Assert.IsType<ResponseCompleted>(Event("finish", "resp_1",
             new AIFinishEventData { FinishReason = "stop", Model = "test" }).ToResponseStreamPart(state));
-        var finalOutput = Assert.IsType<ResponseOutputItem<ResponseCustomToolCallItem>>(Assert.Single(finish.Response.Output));
+        var finalOutput = Assert.IsType<ResponseOutputMcpCall>(Assert.Single(finish.Response.Output));
         var finalJson = JsonSerializer.SerializeToElement(finalOutput, ResponseJson.Default);
         Assert.True(JsonElement.DeepEquals(snapshot, finalJson), "Completed items and final outputs must have the same canonical wire JSON.");
         Assert.True(JsonElement.DeepEquals(snapshot, JsonSerializer.SerializeToElement(done.Item, ResponseJson.Default)),
             "Emitted completed items must remain immutable.");
-        Assert.True(finalJson.GetProperty("output").GetProperty("final_field").GetBoolean());
+        Assert.True(JsonSerializer.Deserialize<JsonElement>(finalJson.GetProperty("output").GetString()!)
+            .GetProperty("structuredContent").GetProperty("final_field").GetBoolean());
     }
 
     private static AIResponse Response(string status, AIOutputItem item) => new()

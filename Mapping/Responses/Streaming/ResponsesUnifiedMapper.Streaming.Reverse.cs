@@ -117,7 +117,7 @@ public static partial class ResponsesUnifiedMapper
             "mcp_call" => "mcp_call",
             "code_interpreter" => "code_interpreter_call",
             "custom_tool" => "custom_tool_call",
-            _ => "custom_tool_call"
+            _ => "mcp_call"
         };
     }
 
@@ -223,6 +223,8 @@ public static partial class ResponsesUnifiedMapper
         Dictionary<string, object?>? additionalProperties = null)
     {
         itemState.Status = status ?? itemState.Status;
+        if (IsSyntheticReverseTool(itemState))
+            return CreateCanonicalResponseOutput(itemState, status ?? "in_progress").ToStreamItem();
         if (GetNativeReverseOutput(itemState) is { } replayItem)
             return replayItem.Deserialize<ResponseStreamItem>(ResponseJson.Default)!;
         if (status is "completed" or "incomplete" or "failed")
@@ -782,6 +784,7 @@ public static partial class ResponsesUnifiedMapper
                 title: toolInputStart.Title,
                 providerExecuted: toolInputStart.ProviderExecuted,
                 providerMetadata: toolInputStart.ProviderMetadata);
+            itemState.SyntheticProviderId = streamEvent.ProviderId;
             ApplyNativeToolSemantics(itemState);
 
             part = new ResponseOutputItemAdded
@@ -854,6 +857,7 @@ public static partial class ResponsesUnifiedMapper
                 title: toolInputAvailable.Title,
                 providerExecuted: toolInputAvailable.ProviderExecuted,
                 providerMetadata: toolInputAvailable.ProviderMetadata);
+            itemState.SyntheticProviderId = streamEvent.ProviderId;
             ApplyNativeToolSemantics(itemState);
 
             itemState.Input = toolInputAvailable.Input;
@@ -909,7 +913,8 @@ public static partial class ResponsesUnifiedMapper
 
         if (kind == "tool-output-available" && envelope.Data is AIToolOutputAvailableEventData toolOutputAvailable)
         {
-            var itemState = GetOrCreateReverseItemState(envelope.Id, "custom_tool_call", state);
+            var itemState = GetOrCreateReverseItemState(envelope.Id, ResolveToolItemType(new AIToolInputStartEventData
+                { ToolName = toolOutputAvailable.ToolName ?? "tool", ProviderExecuted = toolOutputAvailable.ProviderExecuted }), state);
             UpdateReverseItemState(
                 itemState,
                 toolName: toolOutputAvailable.ToolName,
@@ -919,6 +924,7 @@ public static partial class ResponsesUnifiedMapper
                     itemState,
                     toolOutputAvailable));
             itemState.Output = toolOutputAvailable.Output;
+            itemState.SyntheticProviderId = streamEvent.ProviderId;
             var outputMap = ToJsonMap(itemState.Output);
             var outputStatus = GetValue<bool?>(outputMap, "isError") == true || GetValue<string>(outputMap, "status") == "failed"
                 ? "incomplete" : "completed";
@@ -971,7 +977,10 @@ public static partial class ResponsesUnifiedMapper
         if (kind == "tool-output-error" && envelope.Data is AIToolOutputErrorEventData toolError)
         {
             var itemState = GetOrCreateReverseItemState(toolError.ToolCallId ?? envelope.Id, "custom_tool_call", state);
-            itemState.Output = toolError.ErrorText;
+            itemState.Output = IsSyntheticReverseTool(itemState)
+                ? new { content = new[] { new { type = "text", text = toolError.ErrorText } }, isError = true }
+                : (object?)toolError.ErrorText;
+            itemState.SyntheticProviderId = streamEvent.ProviderId;
             itemState.Status = "incomplete";
             UpdateReverseItemState(itemState, providerExecuted: toolError.ProviderExecuted, providerMetadata: toolError.ProviderMetadata);
             part = new ResponseOutputItemDone
@@ -1199,6 +1208,8 @@ public static partial class ResponsesUnifiedMapper
         public string? Title { get; set; }
 
         public bool? ProviderExecuted { get; set; }
+
+        public string? SyntheticProviderId { get; set; }
 
         public object? Input { get; set; }
 

@@ -461,6 +461,17 @@ public static partial class ResponsesUnifiedMapper
                     Metadata = imageGenerationMetadata
                 };
 
+            case ResponseMcpCallItem gatewayCall when SyntheticResponsesTool.IsGatewayCall(gatewayCall.Type, gatewayCall.ServerLabel):
+                var gatewayOutputText = gatewayCall.Output?.ToString() ?? "{}";
+                var gatewayOutput = SyntheticResponsesTool.ParseResult(gatewayOutputText);
+                return new AIInputItem
+                {
+                    Type = "message", Role = "assistant",
+                    Content = SyntheticResponsesTool.BelongsToProvider(gatewayOutput, providerId)
+                        ? [CreateSyntheticToolPart(gatewayCall.Id!, gatewayCall.Name ?? "tool", gatewayCall.Arguments ?? "{}",
+                            gatewayOutputText, gatewayCall.Status, providerId)] : []
+                };
+
             case ResponseItemReference reference:
                 var referenceMetadata = CreateResponsesReplayMetadata(providerId, reference.Type);
                 GetOrCreateProviderScopedMetadata(referenceMetadata, providerId)["id"] = reference.Id;
@@ -562,6 +573,11 @@ public static partial class ResponsesUnifiedMapper
         // Synthetic file-transfer tools describe files already surfaced as file UI parts.
         // Never let their metadata reclassify them as a native Responses replay item.
         if (toolPart.IsSyntheticProviderExecutedReplayArtifact())
+            yield break;
+
+        // Gateway-owned state is consumed by the selected provider from unified
+        // history; it must never become an upstream native MCP invocation.
+        if (ExtractNestedValue<bool?>(toolPart.Metadata ?? [], providerId, "gateway_synthetic") == true)
             yield break;
 
         if (IsGoogleAntigravityStateToolPart(toolPart))

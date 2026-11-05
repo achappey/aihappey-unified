@@ -1039,8 +1039,8 @@ public static class VercelUnifiedMapper
         if (output is null || providerExecuted != true)
             return output;
 
-        if (TryGetCallToolResult(output, out var callToolResult))
-            return JsonSerializer.SerializeToElement(CloneWithoutMeta(callToolResult), Json);
+        if (LooksLikeCallToolResult(output))
+            return SerializeToJsonElement(output);
 
         var serializedOutput = SerializeToJsonElement(output);
 
@@ -1071,6 +1071,11 @@ public static class VercelUnifiedMapper
     {
         if (output is null || providerExecuted != true)
             return output;
+
+        var resultJson = SerializeToJsonElement(output);
+        if (resultJson.ValueKind == JsonValueKind.Object && resultJson.TryGetProperty("_meta", out var resultMeta)
+            && resultMeta.ValueKind == JsonValueKind.Object && resultMeta.TryGetProperty(AIHappey.Responses.Mapping.SyntheticResponsesTool.MetadataKey, out _))
+            return resultJson;
 
         if (output is JsonElement outputJson
             && outputJson.ValueKind == JsonValueKind.Object
