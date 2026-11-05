@@ -157,6 +157,7 @@ public static partial class MessagesUnifiedMapper
         if (tool.Metadata is { } metadata
             && metadata.TryGetValue("responses.type", out var typeObj)
             && typeObj is string type
+            && type is not ("function" or "custom")
             && metadata.TryGetValue("responses.extra", out var extraObj)
             && extraObj is not null)
         {
