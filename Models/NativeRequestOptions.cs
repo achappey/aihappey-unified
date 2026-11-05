@@ -14,11 +14,14 @@ internal static class NativeRequestOptions
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
     };
 
-    public static JsonElement Capture(JsonElement request)
+    // Only discard token fields the source endpoint has already mapped to the
+    // primary unified model. Foreign/native provider options remain raw JSON;
+    // a familiar token name alone is not a reason to translate or drop a field.
+    public static JsonElement Capture(JsonElement request, params string[] mappedTokenFields)
         => JsonSerializer.SerializeToElement(request.EnumerateObject()
             .Where(property => property.Name is not ("metadata" or "model" or "messages" or "input"
-                or "instructions" or "tools" or "stream" or "temperature" or "top_p"
-                or "max_tokens" or "max_completion_tokens" or "max_output_tokens"))
+                or "instructions" or "tools" or "stream" or "temperature" or "top_p")
+                && !mappedTokenFields.Contains(property.Name, StringComparer.Ordinal))
             .GroupBy(property => property.Name)
             .ToDictionary(group => group.Key, group => group.Last().Value.Clone()), Json);
 

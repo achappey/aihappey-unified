@@ -39,7 +39,7 @@ public static partial class ChatCompletionsUnifiedMapper
             : [];
 
         var metadata = BuildUnifiedRequestMetadata(request);
-        metadata[providerId] = NativeRequestOptions.Capture(request);
+        metadata[providerId] = NativeRequestOptions.Capture(request, "max_completion_tokens", "max_tokens");
 
         return new AIRequest
         {

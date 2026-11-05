@@ -361,7 +361,8 @@ public static partial class MessagesUnifiedMapper
         }
 
         metadata["messages.request.unmapped"] = JsonSerializer.SerializeToElement(unmapped, Json);
-        metadata[providerId] = NativeRequestOptions.Capture(JsonSerializer.SerializeToElement(request, MessagesJson.Default));
+        metadata[providerId] = NativeRequestOptions.Capture(JsonSerializer.SerializeToElement(request, MessagesJson.Default),
+            "max_tokens");
         return metadata;
     }
 

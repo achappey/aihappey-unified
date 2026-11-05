@@ -182,7 +182,8 @@ public static partial class ResponsesUnifiedMapper
     {
         var metadata = CaptureResponseMetadata(request, null, request.AdditionalProperties);
         metadata["responses.metadata"] = request.Metadata;
-        metadata[providerId] = NativeRequestOptions.Capture(JsonSerializer.SerializeToElement(request, ResponseJson.Default));
+        metadata[providerId] = NativeRequestOptions.Capture(JsonSerializer.SerializeToElement(request, ResponseJson.Default),
+            "max_output_tokens");
         return metadata;
     }
 

@@ -154,6 +154,40 @@ public static partial class MessagesUnifiedMapper
             }
         }
 
+        if (tool.Metadata is { } metadata
+            && metadata.TryGetValue("responses.type", out var typeObj)
+            && typeObj is string type
+            && metadata.TryGetValue("responses.extra", out var extraObj)
+            && extraObj is not null)
+        {
+            try
+            {
+                var extra = JsonSerializer.SerializeToElement(extraObj, Json);
+
+                if (extra.ValueKind == JsonValueKind.Object)
+                {
+                    var rawItem = extra.EnumerateObject()
+                        .ToDictionary(
+                            p => p.Name,
+                            p => p.Value.Clone(),
+                            StringComparer.Ordinal);
+
+                    rawItem["type"] = JsonSerializer.SerializeToElement(type);
+
+                    var parsed = DeserializeFromObject<MessageToolDefinition>(rawItem);
+
+                    if (parsed is not null
+                        && parsed.Type == type
+                        && !string.IsNullOrWhiteSpace(parsed.Name))
+                        return parsed;
+                }
+            }
+            catch (JsonException)
+            {
+                // Fall back to existing tool mapping.
+            }
+        }
+
         return new MessageToolDefinition
         {
             Name = tool.Name,
