@@ -629,16 +629,9 @@ public static partial class InteractionsUnifiedMapper
                 Signature = signature,
                 Arguments = DeserializeFromObject<InteractionGoogleMapsCallArguments>(tool.Input)
             },
-            "function_result" => new InteractionFunctionResultStep
-            {
-                CallId = tool.ToolCallId,
-                Name = tool.ToolName,
-                Signature = signature,
-                IsError = isError,
-                Result = rawStep is InteractionFunctionResultStep
-                    ? ToInteractionJson(tool.Output)
-                    : ToInteractionJson(ToFunctionResultContentBlocks(tool.Output))
-            },
+            "function_result" => CreateFunctionResultStep(
+                tool.Output, tool.ToolCallId, tool.ToolName, signature, isError,
+                preserveNativeResult: rawStep is InteractionFunctionResultStep),
             "code_execution_result" => new InteractionCodeExecutionResultStep
             {
                 CallId = tool.ToolCallId,
@@ -680,14 +673,8 @@ public static partial class InteractionsUnifiedMapper
                 Signature = signature,
                 Result = DeserializeFromCallToolResult<List<InteractionGoogleMapsResult>>(tool.Output)
             },
-            _ when HasToolOutput(tool) => new InteractionFunctionResultStep
-            {
-                CallId = tool.ToolCallId,
-                Name = tool.ToolName,
-                Signature = signature,
-                Result = ToInteractionJson(ToFunctionResultContentBlocks(tool.Output)),
-                IsError = isError
-            },
+            _ when HasToolOutput(tool) => CreateFunctionResultStep(
+                tool.Output, tool.ToolCallId, tool.ToolName, signature, isError),
             _ => ToInteractionFunctionCallContent(tool, signature)
         };
 

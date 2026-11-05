@@ -1448,14 +1448,9 @@ public static partial class InteractionsUnifiedMapper
             };
         }
 
-        return new InteractionFunctionResultStep
-        {
-            CallId = callId,
-            Name = toolName,
-            Signature = signature,
-            IsError = isError,
-            Result = ToInteractionJson(TryGetStructuredContentResult(payload?.Output) ?? payload?.Output)
-        };
+        return CreateFunctionResultStep(
+            payload?.Output, callId, toolName, signature, isError,
+            preserveNonMcpResult: true);
     }
 
     private static InteractionContentDeltaData CreateReasoningDeltaData(string providerId, AIReasoningDeltaEventData? data)
