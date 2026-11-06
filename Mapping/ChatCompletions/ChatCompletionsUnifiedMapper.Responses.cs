@@ -381,7 +381,7 @@ public static partial class ChatCompletionsUnifiedMapper
 
     private static List<ChatCompletionChoice> BuildChoicesFromOutput(AIOutput? output)
     {
-        var items = output?.Items ?? [];
+        var items = CoalesceStandaloneClientToolCalls(output?.Items ?? []);
         var choices = new List<ChatCompletionChoice>();
 
         var index = 0;
@@ -444,6 +444,7 @@ public static partial class ChatCompletionsUnifiedMapper
             if (completedProviderTools.Count > 0 && !toolParts.Any(tool => tool.IsClientToolCall)
                 && finishReason is null or "tool_calls" or "function_call")
                 finishReason = "stop";
+            finishReason ??= toolParts.Any(IsPendingClientToolCall) ? "tool_calls" : "stop";
 
             var choice = new ChatCompletionChoice
             {
@@ -456,6 +457,38 @@ public static partial class ChatCompletionsUnifiedMapper
         }
 
         return choices;
+    }
+
+    private static bool IsPendingClientToolCall(AIToolCallContentPart tool)
+        => tool.IsClientToolCall && tool.Type != "function_result"
+            && !HasToolOutput(tool) && tool.State is not ("output-available" or "output-error");
+
+    private static List<AIOutputItem> CoalesceStandaloneClientToolCalls(List<AIOutputItem> items)
+    {
+        // Interactions and Responses can emit calls as standalone output items.
+        // These are parts of one assistant turn, not separate completion choices.
+        var assistantItems = items.Where(item =>
+            (item.Role is null || string.Equals(item.Role, "assistant", StringComparison.OrdinalIgnoreCase))
+            && item.Metadata?.ContainsKey("chatcompletions.choice.index") != true
+            && (string.Equals(item.Type, "message", StringComparison.OrdinalIgnoreCase)
+                || item.Content?.OfType<AIToolCallContentPart>().Any(IsPendingClientToolCall) == true)).ToList();
+        if (!assistantItems.Any(item => !string.Equals(item.Type, "message", StringComparison.OrdinalIgnoreCase)))
+            return items;
+
+        var metadata = new Dictionary<string, object?>();
+        foreach (var item in assistantItems)
+            foreach (var entry in item.Metadata ?? [])
+                metadata.TryAdd(entry.Key, entry.Value);
+
+        var combined = new AIOutputItem
+        {
+            Type = "message", Role = "assistant",
+            Content = assistantItems.SelectMany(item => item.Content ?? []).ToList(),
+            Metadata = metadata
+        };
+        return items.SelectMany(item => ReferenceEquals(item, assistantItems[0])
+            ? new[] { combined }
+            : assistantItems.Contains(item) ? [] : new[] { item }).ToList();
     }
 
     private static string? InferStatus(JsonElement response)

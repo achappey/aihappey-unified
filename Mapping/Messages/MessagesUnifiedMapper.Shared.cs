@@ -134,6 +134,7 @@ public static partial class MessagesUnifiedMapper
         {
             "filtered" => "refusal",
             "in_progress" => "pause_turn",
+            "requires_action" => "tool_use",
             _ => "end_turn"
         };
 

@@ -50,6 +50,10 @@ public static partial class MessagesUnifiedMapper
         var metadata = response.Metadata ?? [];
         var role = ExtractValue<string>(metadata, "messages.response.role") ?? "assistant";
         var normalizedUsage = response.Usage as AIUsage;
+        var hasPendingClientTool = (response.Output?.Items ?? [])
+            .SelectMany(item => item.Content ?? []).OfType<AIToolCallContentPart>()
+            .Any(tool => tool.IsClientToolCall && tool.Type != "function_result"
+                && !HasToolOutput(tool) && tool.State is not ("output-available" or "output-error"));
 
         var nativeMetadata = metadata.ContainsKey("messages.response.metadata")
             ? ExtractObject<Dictionary<string, object?>>(metadata, "messages.response.metadata")
@@ -73,7 +77,8 @@ public static partial class MessagesUnifiedMapper
             Role = role,
             Metadata = resultMetadata,
             StopDetails = ExtractObject<MessagesStopDetails>(metadata, "messages.response.stop_details"),
-            StopReason = ExtractValue<string>(metadata, "messages.response.stop_reason") ?? ToMessagesStopReason(response.Status),
+            StopReason = ExtractValue<string>(metadata, "messages.response.stop_reason")
+                ?? (hasPendingClientTool ? "tool_use" : ToMessagesStopReason(response.Status)),
             StopSequence = ExtractValue<string>(metadata, "messages.response.stop_sequence"),
             Type = ExtractValue<string>(metadata, "messages.response.type") ?? "message",
             Usage = ExtractObject<MessagesUsage>(metadata, "messages.response.usage")
