@@ -1,4 +1,5 @@
 using System.Text.Json;
+using System.Runtime.CompilerServices;
 using AIHappey.ChatCompletions.Models;
 using AIHappey.Unified.Models;
 
@@ -115,9 +116,18 @@ public static partial class ChatCompletionsUnifiedMapper
         };
     }
 
+    /// <summary>Maps an isolated event. Use explicit state or the sequence helper for a complete stream.</summary>
+    [Obsolete("For streams, pass a ChatCompletionsReverseStreamMappingState or use ToChatCompletionUpdates on the sequence.")]
     public static ChatCompletionUpdate ToChatCompletionUpdate(this AIStreamEvent streamEvent)
+        => streamEvent.ToChatCompletionUpdate(new ChatCompletionsReverseStreamMappingState());
+
+    /// <summary>Maps one event using state owned by its complete unified response stream.</summary>
+    public static ChatCompletionUpdate ToChatCompletionUpdate(
+        this AIStreamEvent streamEvent,
+        ChatCompletionsReverseStreamMappingState state)
     {
         ArgumentNullException.ThrowIfNull(streamEvent);
+        ArgumentNullException.ThrowIfNull(state);
 
         var data = streamEvent.Event.Data;
         if (data is AIDataEventData dataEvent && dataEvent.Data is JsonElement wrappedChunkEl && wrappedChunkEl.ValueKind == JsonValueKind.Object)
@@ -151,11 +161,18 @@ public static partial class ChatCompletionsUnifiedMapper
         }
 
         var metadata = streamEvent.Metadata;
+        var toolIndex = data switch
+        {
+            AIToolInputStartEventData or AIToolInputAvailableEventData or AIToolOutputAvailableEventData
+                => state.GetToolIndex(streamEvent.Event.Id),
+            AIToolOutputErrorEventData error => state.GetToolIndex(error.ToolCallId ?? streamEvent.Event.Id),
+            _ => 0
+        };
         ChatCompletionToolCallChunk? toolCall = data switch
         {
             AIToolInputAvailableEventData input => new ChatCompletionToolCallChunk
             {
-                Index = 0,
+                Index = toolIndex,
                 Id = streamEvent.Event.Id,
                 Type = "function",
                 AdditionalProperties = new() { ["provider_executed"] = JsonSerializer.SerializeToElement(input.ProviderExecuted, Json) },
@@ -163,7 +180,7 @@ public static partial class ChatCompletionsUnifiedMapper
             },
             AIToolOutputAvailableEventData output => new ChatCompletionToolCallChunk
             {
-                Index = 0,
+                Index = toolIndex,
                 Id = streamEvent.Event.Id,
                 Type = "function",
                 AdditionalProperties = new() { ["provider_executed"] = JsonSerializer.SerializeToElement(output.ProviderExecuted, Json) },
@@ -179,7 +196,7 @@ public static partial class ChatCompletionsUnifiedMapper
             },
             AIToolOutputErrorEventData error => new ChatCompletionToolCallChunk
             {
-                Index = 0,
+                Index = toolIndex,
                 Id = error.ToolCallId ?? streamEvent.Event.Id,
                 Type = "function",
                 AdditionalProperties = new() { ["provider_executed"] = JsonSerializer.SerializeToElement(error.ProviderExecuted, Json) },
@@ -213,6 +230,33 @@ public static partial class ChatCompletionsUnifiedMapper
             Usage = usage,
             AdditionalProperties = BuildChatCompletionUpdateAdditionalProperties(metadata)
         };
+    }
+
+    /// <summary>Maps a unified stream with fresh call-index state for each enumeration.</summary>
+    public static async IAsyncEnumerable<ChatCompletionUpdate> ToChatCompletionUpdates(
+        this IAsyncEnumerable<AIStreamEvent> streamEvents,
+        [EnumeratorCancellation] CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(streamEvents);
+
+        var state = new ChatCompletionsReverseStreamMappingState();
+        await foreach (var streamEvent in streamEvents.WithCancellation(cancellationToken))
+            yield return streamEvent.ToChatCompletionUpdate(state);
+    }
+
+    /// <summary>Mutable call-index state for one unified-to-Chat stream. Never share between streams.</summary>
+    public sealed class ChatCompletionsReverseStreamMappingState
+    {
+        private readonly Dictionary<string, int> toolIndexes = new(StringComparer.Ordinal);
+
+        internal int GetToolIndex(string? callId)
+        {
+            if (string.IsNullOrWhiteSpace(callId))
+                return 0;
+            if (!toolIndexes.TryGetValue(callId, out var index))
+                toolIndexes[callId] = index = toolIndexes.Count;
+            return index;
+        }
     }
 
     private static Dictionary<string, object?> BuildUnifiedStreamMetadata(JsonElement chunk)
