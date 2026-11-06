@@ -900,6 +900,32 @@ public static partial class InteractionsUnifiedMapper
         if (raw is not null)
             return raw;
 
+        var endpointType = ExtractValue<string>(tool.Metadata, "chatcompletions.tool.type")
+                           ?? ExtractValue<string>(tool.Metadata, "messages.tool.type");
+        var endpointRaw = ExtractObject<JsonElement?>(tool.Metadata, "chatcompletions.tool.raw")
+                          ?? ExtractObject<JsonElement?>(tool.Metadata, "messages.tool.raw");
+        if (endpointType is not null && endpointType != "function")
+        {
+            // These tools were posted in a compatibility endpoint's tools array,
+            // but are already Google-native definitions. Preserve their settings;
+            // never turn nameless built-ins into client functions named "tool".
+            if (endpointType is not ("google_search" or "url_context" or "code_execution"
+                or "computer_use" or "mcp_server" or "file_search" or "google_maps" or "retrieval"))
+                throw new NotSupportedException($"Tool type '{endpointType}' is not supported by Google Interactions.");
+            return endpointRaw?.Deserialize<InteractionTool>(Json)
+                   ?? throw new ArgumentException($"Missing Google tool definition for '{endpointType}'.", nameof(tool));
+        }
+
+        if (endpointRaw is { ValueKind: JsonValueKind.Object } definition)
+        {
+            var source = tool.Metadata?.ContainsKey("chatcompletions.tool.raw") == true
+                ? definition.TryGetProperty("function", out var function) ? function : default
+                : definition;
+            if (source.ValueKind != JsonValueKind.Object || !source.TryGetProperty("name", out var name)
+                || name.ValueKind != JsonValueKind.String || string.IsNullOrWhiteSpace(name.GetString()))
+                throw new ArgumentException("Google client function declarations require an explicit name.", nameof(tool));
+        }
+
         return (ExtractValue<string>(tool.Metadata, "interactions.tool.type") ?? "function") switch
         {
             "code_execution" => new InteractionCodeExecutionTool(),

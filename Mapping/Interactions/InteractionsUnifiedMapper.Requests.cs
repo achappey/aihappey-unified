@@ -32,6 +32,7 @@ public static partial class InteractionsUnifiedMapper
         ArgumentNullException.ThrowIfNull(request);
 
         var metadata = request.Metadata ?? [];
+        var endpointBridge = metadata.ContainsKey("messages.request.raw") || metadata.ContainsKey("chatcompletions.request.raw");
         var storedModel = ExtractValue<string>(metadata, "interactions.request.model");
         var storedAgent = ExtractValue<string>(metadata, "interactions.request.agent");
         var providerConfig = metadata.TryGetValue(providerId, out object? config) ? config.ToDictionary() : null;
@@ -42,7 +43,9 @@ public static partial class InteractionsUnifiedMapper
             : JsonSerializer.SerializeToElement(sourceGenerationConfig, Json).Deserialize<InteractionGenerationConfig>(Json)!;
 
         generationConfig.MaxOutputTokens = request.MaxOutputTokens ?? generationConfig.MaxOutputTokens;
-        generationConfig.ToolChoice = DeserializeFromObject<InteractionToolChoiceValue>(request.ToolChoice) ?? generationConfig.ToolChoice;
+        generationConfig.ToolChoice = (endpointBridge
+            ? ToEndpointInteractionToolChoice(request.ToolChoice, request.ParallelToolCalls)
+            : DeserializeFromObject<InteractionToolChoiceValue>(request.ToolChoice)) ?? generationConfig.ToolChoice;
         if (request.Temperature is not null)
             (generationConfig.AdditionalProperties ??= [])["temperature"] = JsonSerializer.SerializeToElement(request.Temperature, Json);
         if (request.TopP is not null)
@@ -66,7 +69,13 @@ public static partial class InteractionsUnifiedMapper
             requestTools.AddRange(providerTools);
         }
 
-        return new InteractionRequest
+        if (endpointBridge)
+        {
+            requestTools = NormalizeEndpointInteractionTools(requestTools);
+            ApplyEndpointGenerationOptions(generationConfig, metadata);
+        }
+
+        var result = new InteractionRequest
         {
             Model = string.IsNullOrWhiteSpace(storedAgent) || !string.IsNullOrWhiteSpace(storedModel)
                 ? request.Model ?? storedModel
@@ -76,7 +85,7 @@ public static partial class InteractionsUnifiedMapper
                 ? ExtractObject<Dictionary<string, object?>>(metadata, "interactions.request.metadata")
                 : request.Metadata,
             Input = request.Input is null ? null : ToInteractionInput(request.Input, providerId),
-            SystemInstruction = request.Instructions,
+            SystemInstruction = ToInteractionSystemInstruction(request),
             Tools = requestTools.Count > 0 ? requestTools : null,
             ResponseFormat = DeserializeFromObject<InteractionResponseFormats>(responseFormat),
             Stream = request.Stream,
@@ -95,6 +104,22 @@ public static partial class InteractionsUnifiedMapper
             ServiceTier = ExtractValue<string>(metadata, "interactions.request.service_tier"),
             AdditionalProperties = ExtractObject<Dictionary<string, JsonElement>>(metadata, "interactions.request.additional_properties")
         };
+
+        if (endpointBridge)
+        {
+            // Consume options once, before provider transport. In particular, a later
+            // provider merge must not overwrite the translated generation_config or
+            // leak Messages' system/tool_choice fields into Google's root object.
+            var options = ToEndpointInteractionOptions(metadata, providerId);
+            result = NativeRequestOptions.Apply(result, options, providerId);
+            if (result.Metadata is not null)
+            {
+                result.Metadata = new Dictionary<string, object?>(result.Metadata, StringComparer.Ordinal);
+                result.Metadata.Remove(providerId);
+            }
+        }
+
+        return result;
     }
 
     private static AIInput ToUnifiedInput(InteractionsInput input, string providerId)
@@ -148,7 +173,7 @@ public static partial class InteractionsUnifiedMapper
         if (!string.IsNullOrWhiteSpace(input.Text))
             return new InteractionsInput(input.Text);
 
-        var items = input.Items ?? [];
+        var items = (input.Items ?? []).Where(item => !IsInteractionInstructionRole(item.Role)).ToList();
         if (items.Count == 0)
             return new InteractionsInput();
 
