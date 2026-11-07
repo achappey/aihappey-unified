@@ -126,7 +126,8 @@ public sealed class InteractionsCurrentContractMappingTests
         {
             Interaction = new Interaction { Status = new InteractionStatus(status) }
         };
-        var mapped = finish.ToUnifiedStreamEvent("google").Single();
+        InteractionStreamEventPart[] parts = [finish];
+        var mapped = parts.ToUnifiedStreamEvents("google").Single();
 
         Assert.Equal(expectedFinishReason, Assert.IsType<AIFinishEventData>(mapped.Event.Data).FinishReason);
     }

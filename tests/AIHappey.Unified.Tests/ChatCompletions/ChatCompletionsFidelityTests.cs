@@ -2,6 +2,7 @@ using System.Text.Json;
 using AIHappey.ChatCompletions.Mapping;
 using AIHappey.ChatCompletions.Models;
 using AIHappey.Unified.Models;
+using static AIHappey.Tests.ChatCompletions.ChatCompletionsStreamTestHelper;
 
 namespace AIHappey.Tests.ChatCompletions;
 
@@ -165,7 +166,7 @@ public sealed class ChatCompletionsFidelityTests
     }
 
     [Fact]
-    public void Stream_finish_preserves_native_usage_details()
+    public async Task Stream_finish_preserves_native_usage_details()
     {
         var chunk = JsonSerializer.Deserialize<ChatCompletionUpdate>("""
             {"id":"chatcmpl-1","object":"chat.completion.chunk","created":1720000000,"model":"test",
@@ -174,15 +175,15 @@ public sealed class ChatCompletionsFidelityTests
                "completion_tokens_details":{"reasoning_tokens":4}}}
             """, JsonSerializerOptions.Web)!;
         var finish = chunk.ToUnifiedStreamEvents("openai").Single(e => e.Event.Type == "finish");
-        var replay = finish.ToChatCompletionUpdate();
+        var replay = await MapSingleUpdateAsync(finish);
         Assert.Equal(20, replay.Usage?.TotalTokens);
         Assert.Equal(4, replay.Usage?.CompletionTokensDetails?.ReasoningTokens);
     }
 
     [Fact]
-    public void Synthetic_stream_finish_keeps_legacy_usage_and_filter_reason()
+    public async Task Synthetic_stream_finish_keeps_legacy_usage_and_filter_reason()
     {
-        var replay = new AIStreamEvent
+        var replay = await MapSingleUpdateAsync(new AIStreamEvent
         {
             ProviderId = "openai",
             Event = new AIEventEnvelope
@@ -190,7 +191,7 @@ public sealed class ChatCompletionsFidelityTests
                 Type = "finish",
                 Data = new AIFinishEventData { FinishReason = "content-filter", InputTokens = 12, OutputTokens = 3 }
             }
-        }.ToChatCompletionUpdate();
+        });
         Assert.Equal("content-filter", Assert.Single(replay.Choices).FinishReason);
         Assert.Null(replay.Usage);
     }

@@ -1,6 +1,7 @@
 using System.Text.Json;
 using AIHappey.ChatCompletions.Mapping;
 using AIHappey.ChatCompletions.Models;
+using static AIHappey.Tests.ChatCompletions.ChatCompletionsStreamTestHelper;
 
 namespace AIHappey.Tests.ChatCompletions;
 
@@ -43,7 +44,7 @@ public sealed class ChatCompletionsUnifiedMapperCompatibilityTests
     }
 
     [Fact]
-    public void Usage_only_stream_chunk_is_preserved_as_a_raw_chat_completion_chunk()
+    public async Task Usage_only_stream_chunk_is_preserved_as_a_raw_chat_completion_chunk()
     {
         var chunk = JsonSerializer.Deserialize<ChatCompletionUpdate>(
             """
@@ -55,7 +56,7 @@ public sealed class ChatCompletionsUnifiedMapperCompatibilityTests
         var mapped = Assert.Single(chunk.ToUnifiedStreamEvents("openai"));
 
         Assert.Equal("data-chat.completion.chunk", mapped.Event.Type);
-        var replay = mapped.ToChatCompletionUpdate();
+        var replay = await MapSingleUpdateAsync(mapped);
         Assert.Empty(replay.Choices);
         Assert.Equal(12, replay.Usage?.PromptTokens);
         Assert.Equal(3, replay.Usage?.CompletionTokens);
