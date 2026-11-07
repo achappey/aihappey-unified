@@ -12,7 +12,7 @@
     <ProjectReference Include="../aihappey-messages/AIHappey.Messages.csproj" />
     <ProjectReference Include="../aihappey-interactions/AIHappey.Interactions.csproj" />
     <ProjectReference Include="../aihappey-vercel/AIHappey.Vercel.csproj" />
-    <PackageReference Include="ModelContextProtocol.Core" Version="2.3.1" />
+    <PackageReference Include="ModelContextProtocol.Core" Version="2.4.0" />
   </ItemGroup>
   <ItemGroup>
     <Compile Remove="tests/**/*.cs" />
