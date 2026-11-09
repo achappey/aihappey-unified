@@ -6,12 +6,12 @@ namespace AIHappey.Responses.Mapping;
 
 public static partial class ResponsesUnifiedMapper
 {
-    public static AIResponse ToUnifiedResponse(this ResponseResult response, string providerId)
+    public static AIResponse ToUnifiedResponse(this ResponseResult response, string providerId, bool localShell = false)
     {
         ArgumentNullException.ThrowIfNull(response);
         ArgumentException.ThrowIfNullOrWhiteSpace(providerId);
 
-        var outputItems = ToUnifiedOutputItems(response, providerId).ToList();
+        var outputItems = ToUnifiedOutputItems(response, providerId, localShell).ToList();
 
         var responseMetadata = AddMultiAgentReplayMetadata(
             AddRawUsageMetadata(response.Metadata, providerId, response.Usage),
@@ -89,7 +89,7 @@ public static partial class ResponsesUnifiedMapper
         };
     }
 
-    private static IEnumerable<AIOutputItem> ToUnifiedOutputItems(ResponseResult response, string providerId)
+    private static IEnumerable<AIOutputItem> ToUnifiedOutputItems(ResponseResult response, string providerId, bool localShell = false)
     {
         var outputItems = (response.Output ?? []).Where(static item => item is not null).ToList();
         var fallbackSubagentFinalMessageIndex = FindFallbackSubagentFinalMessageIndex(outputItems!);
@@ -127,6 +127,28 @@ public static partial class ResponsesUnifiedMapper
             var role = GetValue<string>(map, "role") ?? "assistant";
             var type = GetValue<string>(map, "type") ?? "message";
             var phase = GetValue<string>(map, "phase");
+            if (type is "shell_call" or "shell_call_output")
+            {
+                var metadata = CreateResponsesToolMetadata(providerId, type, item, map, outputIndex);
+                var scope = GetOrCreateProviderScopedMetadata(metadata, providerId);
+                foreach (var field in new[] { "environment", "created_by", "max_output_length" })
+                    if (map.TryGetValue(field, out var value)) scope[field] = value;
+                var environment = ToJsonMap(GetValue<object>(map, "environment"));
+                var local = environment.Count == 0 ? localShell : GetValue<string>(environment, "type") == "local";
+                yield return new AIOutputItem
+                {
+                    Type = "message", Role = role, Metadata = new() { ["responses.raw_output"] = item },
+                    Content = [new AIToolCallContentPart
+                    {
+                        Type = type, ToolName = "shell_call", Title = "shell_call",
+                        ToolCallId = GetValue<string>(map, "call_id") ?? throw new JsonException("Shell call_id is required."),
+                        ProviderExecuted = !local, State = GetValue<string>(map, "status"), Metadata = metadata,
+                        Input = type == "shell_call" ? GetValue<object>(map, "action") : null,
+                        Output = type == "shell_call_output" ? new { output = GetValue<object>(map, "output"), max_output_length = GetValue<int?>(map, "max_output_length") } : null
+                    }]
+                };
+                continue;
+            }
 
             if (string.Equals(type, "message", StringComparison.OrdinalIgnoreCase)
                 && isMultiAgentResponse

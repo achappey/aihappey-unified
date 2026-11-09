@@ -174,6 +174,16 @@ public static partial class ResponsesUnifiedMapper
                 continue;
             }
 
+            if (tool.ProviderExecuted != true && IsShellPart(tool,
+                ResolveResponsesReplayType(tool.Metadata, providerId, "messages.provider.call.metadata"),
+                ResolveResponsesReplayType(tool.Metadata, providerId, "messages.provider.result.metadata")))
+            {
+                foreach (var shell in CreateLocalShellReplayItems(tool, metadata, providerId))
+                    if (shell is ResponseShellCallItem call) yield return new ResponseOutputItem<ResponseShellCallItem>(call);
+                    else if (shell is ResponseShellCallOutputItem result) yield return new ResponseOutputItem<ResponseShellCallOutputItem>(result);
+                continue;
+            }
+
             var toolMetadata = tool.Metadata ?? [];
             var callId = NonemptyId(tool.ToolCallId, "call");
             var callItemId = ResolveConstructedItemId(toolMetadata, providerId, "fc", callId);

@@ -93,6 +93,8 @@ public static partial class ResponsesUnifiedMapper
     {
         if (toolInputStart.ProviderMetadata?.Values.Any(scoped => GetMetadataString(scoped, "type") == "apply_patch_call") == true)
             return "apply_patch_call";
+        if (toolInputStart.ProviderMetadata?.Values.Any(scoped => GetMetadataString(scoped, "type") == "shell_call") == true)
+            return "shell_call";
         if (IsAnthropicCodeExecutionProgram(toolInputStart.ProviderMetadata))
             return "program";
 
@@ -134,7 +136,7 @@ public static partial class ResponsesUnifiedMapper
 
         foreach (var scoped in itemState.ProviderMetadata.Values)
         {
-            if (GetMetadataString(scoped, "type") is "apply_patch_call" or "apply_patch_call_output")
+            if (GetMetadataString(scoped, "type") is "apply_patch_call" or "apply_patch_call_output" or "shell_call" or "shell_call_output")
             {
                 itemState.ItemType = GetMetadataString(scoped, "type")!;
                 if (scoped.TryGetValue("caller", out var patchCaller) && patchCaller is not null)
@@ -864,7 +866,7 @@ public static partial class ResponsesUnifiedMapper
             itemState.SerializedInput = SerializeToolInput(toolInputAvailable.Input);
 
             var sequenceNumber = ResolveReverseSequenceNumber(data, state);
-            if (itemState.ItemType == "apply_patch_call" || string.Equals(itemState.ToolName, GoogleAntigravityStateToolName, StringComparison.OrdinalIgnoreCase))
+            if (itemState.ItemType is "apply_patch_call" or "shell_call" || string.Equals(itemState.ToolName, GoogleAntigravityStateToolName, StringComparison.OrdinalIgnoreCase))
             {
                 part = new ResponseOutputItemDone
                 {

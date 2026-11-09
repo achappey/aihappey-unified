@@ -186,7 +186,7 @@ public static partial class ResponsesUnifiedMapper
                     yield return envelope;
             }
 
-            yield return CreateFinishEnvelope(type, sequenceNumber, response, providerId);
+            yield return CreateFinishEnvelope(type, sequenceNumber, response, providerId, state.ClientShellPending);
         }
         finally
         {
@@ -197,7 +197,7 @@ public static partial class ResponsesUnifiedMapper
         }
     }
 
-    private static AIEventEnvelope CreateFinishEnvelope(string id, int sequenceNumber, ResponseResult response, string providerId)
+    private static AIEventEnvelope CreateFinishEnvelope(string id, int sequenceNumber, ResponseResult response, string providerId, bool clientShellPending = false)
     {
         var usage = ToUnifiedUsage(response.Usage);
         var inputTokens = usage?.InputTokens;
@@ -219,7 +219,7 @@ public static partial class ResponsesUnifiedMapper
                 TotalTokens = totalTokens,
                 MessageMetadata = CreateFinishMessageMetadata(response, providerId, inputTokens, outputTokens, totalTokens),
                 FinishReason = response.Status == "failed" ? "error"
-                    : response.Output.Any(a => a is ResponseFunctionCallItem || GetValue<string>(ToJsonMap(a), "type") == "apply_patch_call") ? "tool-calls"
+                    : clientShellPending || response.Output.Any(a => a is ResponseFunctionCallItem || GetValue<string>(ToJsonMap(a), "type") == "apply_patch_call") ? "tool-calls"
                     : response.Status == "completed" ? "stop"
                     : "other"
             },

@@ -143,7 +143,12 @@ public static partial class ResponsesUnifiedMapper
         foreach (var item in completedItems)
         {
             if (string.Equals(item.Type, "shell_call", StringComparison.OrdinalIgnoreCase))
+            {
                 HydrateShellCallFromCompletedResponse(mappingState, item);
+                if (IsLocalShellCall(item, mappingState.LocalShell))
+                    foreach (var envelope in CreateShellToolInputAvailableEnvelopes(mappingState, providerId, item, completedItems.IndexOf(item)))
+                        yield return envelope;
+            }
         }
 
         foreach (var item in completedItems)
@@ -298,13 +303,16 @@ public static partial class ResponsesUnifiedMapper
                 state.InputsByCallId[callId] = accumulator;
         }
 
+        if (accumulator.InputEmitted) yield break;
+        accumulator.InputEmitted = true;
+        mappingState.ClientShellPending |= IsLocalShellCall(item, mappingState.LocalShell);
         var commands = ExtractShellCommands(item);
         if (commands.Count == 0)
             commands = [.. accumulator.CommandBuilders.Select(builder => builder.ToString())];
         else
             SyncShellCommands(accumulator, commands);
 
-        var input = CreateShellCallInput(commands);
+        var input = TryGetItemJson(item, "action", out var completeAction) ? completeAction : CreateShellCallInput(commands);
 
         if (!accumulator.JsonStarted)
         {
@@ -323,7 +331,7 @@ public static partial class ResponsesUnifiedMapper
             "shell_call",
             input,
             "shell_call",
-            providerExecuted: true,
+            providerExecuted: !IsLocalShellCall(item, mappingState.LocalShell),
             providerMetadata: CreateShellToolCallProviderMetadata(providerId, item, input));
 
         if (!string.IsNullOrWhiteSpace(accumulator.CallId))
@@ -756,6 +764,7 @@ public static partial class ResponsesUnifiedMapper
             ["id"] = item.Id ?? string.Empty,
             ["item_id"] = item.Id ?? string.Empty,
             ["call_id"] = item.CallId ?? string.Empty,
+            ["responses_item"] = JsonSerializer.SerializeToElement(item, Json),
             ["action"] = TryGetItemJson(item, "action", out var action) ? action : input.Clone()
         };
 
@@ -806,6 +815,7 @@ public static partial class ResponsesUnifiedMapper
 
     internal sealed class ShellInputAccumulator
     {
+        public bool InputEmitted { get; set; }
         public string ItemId { get; init; } = string.Empty;
 
         public int OutputIndex { get; init; }

@@ -11,6 +11,9 @@ public static partial class ResponsesUnifiedMapper
     /// <summary>Mutable conversion state for one Responses stream. Never share between streams.</summary>
     public sealed class ResponseStreamMappingState
     {
+        /// <summary>Explicit request configuration, used only when a shell call omits environment.</summary>
+        public bool LocalShell { get; set; }
+        internal bool ClientShellPending { get; set; }
         internal bool MultiAgentActive { get; set; }
         internal HashSet<string> CompletedApplyPatchCalls { get; } = new(StringComparer.Ordinal);
         internal ResponseShellStreamState Shell { get; set; } = new();
@@ -73,6 +76,7 @@ public static partial class ResponsesUnifiedMapper
         state.SyntheticToolIds.Clear();
         state.CompletedSyntheticTools.Clear();
         state.MultiAgentActive = false;
+        state.ClientShellPending = false;
     }
 
     public static ResponseStreamPart ToResponseStreamPart(
@@ -955,7 +959,8 @@ public static partial class ResponsesUnifiedMapper
                         added.Item.Id ?? string.Empty,
                         "shell_call",
                         "shell_call",
-                        true);
+                        !IsLocalShellCall(added.Item, state.LocalShell),
+                        CreateShellToolCallProviderMetadata(providerId, added.Item, CreateShellCallInput([])));
 
                     yield break;
                 }

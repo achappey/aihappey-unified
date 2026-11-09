@@ -617,9 +617,10 @@ public static partial class ResponsesUnifiedMapper
             yield break;
         }
 
-        if (IsHostedShellToolPart(toolPart, callReplayType, resultReplayType))
+        if (IsShellPart(toolPart, callReplayType, resultReplayType))
         {
-            var shellReplayItems = CreateResponseShellReplayItems(toolPart, metadata, providerId);
+            var shellReplayItems = toolPart.ProviderExecuted == true ? CreateResponseShellReplayItems(toolPart, metadata, providerId)
+                : CreateLocalShellReplayItems(toolPart, metadata, providerId);
             foreach (var shellReplayItem in shellReplayItems)
                 yield return shellReplayItem;
             yield break;
