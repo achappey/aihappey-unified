@@ -960,7 +960,7 @@ public static partial class ResponsesUnifiedMapper
                         "shell_call",
                         "shell_call",
                         !IsLocalShellCall(added.Item, state.LocalShell),
-                        CreateShellToolCallProviderMetadata(providerId, added.Item, CreateShellCallInput([])));
+                        CreateShellToolCallProviderMetadata(providerId, added.Item, CreateShellCallInput(added.Item, ExtractShellCommands(added.Item))));
 
                     yield break;
                 }

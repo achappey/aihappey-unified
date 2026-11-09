@@ -17,7 +17,7 @@ public static partial class ResponsesUnifiedMapper
             Model = request.Model,
             Id = request.PromptCacheKey,
             Instructions = request.Instructions,
-            Input = request.Input is null ? null : ToUnifiedInput(request.Input, providerId),
+            Input = request.Input is null ? null : ToUnifiedInput(request.Input, providerId, request.HasLocalShell()),
             Temperature = request.Temperature,
             TopP = request.TopP,
             MaxOutputTokens = request.MaxOutputTokens,
@@ -197,7 +197,7 @@ public static partial class ResponsesUnifiedMapper
         return text;
     }
 
-    private static AIInput ToUnifiedInput(ResponseInput input, string providerId)
+    private static AIInput ToUnifiedInput(ResponseInput input, string providerId, bool localShell)
     {
         if (input.IsText)
             return new AIInput
@@ -216,8 +216,16 @@ public static partial class ResponsesUnifiedMapper
                 ]
             };
 
-        List<AIInputItem>? items = input.Items?.Select(item => ToUnifiedInputItem(item, providerId))
-            .ToList();
+        var shellCallsById = input.Items?.OfType<ResponseShellCallItem>().ToLookup(call => call.CallId, StringComparer.Ordinal);
+        List<AIInputItem>? items = input.Items?.Select(item =>
+        {
+            // Outputs have no environment of their own. Inherit ownership from
+            // their matching call before falling back to the request's tools.
+            var shellCall = item as ResponseShellCallItem
+                ?? (item is ResponseShellCallOutputItem output ? shellCallsById?[output.CallId].LastOrDefault() : null);
+            var itemLocalShell = shellCall?.Environment is { } environment ? environment.Type == "local" : localShell;
+            return ToUnifiedInputItem(item, providerId, itemLocalShell);
+        }).ToList();
 
         return new AIInput { Items = items };
     }
@@ -231,7 +239,7 @@ public static partial class ResponsesUnifiedMapper
         return new ResponseInput(items);
     }
 
-    private static AIInputItem ToUnifiedInputItem(ResponseInputItem item, string providerId)
+    private static AIInputItem ToUnifiedInputItem(ResponseInputItem item, string providerId, bool localShell)
     {
         switch (item)
         {
@@ -390,6 +398,10 @@ public static partial class ResponsesUnifiedMapper
             case ResponseApplyPatchCallItem:
             case ResponseApplyPatchCallOutputItem:
                 return CreateUnifiedApplyPatchInputItem(item, providerId);
+
+            case ResponseShellCallItem:
+            case ResponseShellCallOutputItem:
+                return CreateUnifiedShellInputItem(item, providerId, localShell);
 
             case ResponseToolSearchCallItem toolSearchCall:
                 return CreateUnifiedToolSearchCallInputItem(toolSearchCall, providerId);

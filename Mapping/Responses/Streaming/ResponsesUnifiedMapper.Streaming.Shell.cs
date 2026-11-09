@@ -312,7 +312,7 @@ public static partial class ResponsesUnifiedMapper
         else
             SyncShellCommands(accumulator, commands);
 
-        var input = TryGetItemJson(item, "action", out var completeAction) ? completeAction : CreateShellCallInput(commands);
+        var input = CreateShellCallInput(item, commands);
 
         if (!accumulator.JsonStarted)
         {
@@ -658,6 +658,18 @@ public static partial class ResponsesUnifiedMapper
             },
             JsonSerializerOptions.Web);
 
+    private static JsonElement CreateShellCallInput(ResponseStreamItem item, IReadOnlyList<string> commands)
+    {
+        if (!TryGetItemJson(item, "action", out var action) || action.ValueKind != JsonValueKind.Object)
+            return CreateShellCallInput(commands);
+
+        // A terminal item may retain an empty commands placeholder after command
+        // deltas arrived. Keep its action options, but use the resolved commands.
+        var properties = action.Deserialize<Dictionary<string, JsonElement>>(Json)!;
+        properties["commands"] = JsonSerializer.SerializeToElement(commands, Json);
+        return JsonSerializer.SerializeToElement(properties, Json);
+    }
+
     private static List<string> ExtractShellCommands(ResponseStreamItem item)
     {
         if (!TryGetItemJson(item, "action", out var action)
@@ -756,6 +768,10 @@ public static partial class ResponsesUnifiedMapper
         ResponseStreamItem item,
         JsonElement input)
     {
+        // Reverse streaming replays responses_item verbatim, so hydrate that
+        // snapshot too without changing the caller's native item.
+        var nativeItem = JsonSerializer.SerializeToElement(item, Json).Deserialize<Dictionary<string, JsonElement>>(Json)!;
+        nativeItem["action"] = input.Clone();
         var metadata = new Dictionary<string, object>
         {
             ["type"] = "shell_call",
@@ -764,8 +780,8 @@ public static partial class ResponsesUnifiedMapper
             ["id"] = item.Id ?? string.Empty,
             ["item_id"] = item.Id ?? string.Empty,
             ["call_id"] = item.CallId ?? string.Empty,
-            ["responses_item"] = JsonSerializer.SerializeToElement(item, Json),
-            ["action"] = TryGetItemJson(item, "action", out var action) ? action : input.Clone()
+            ["responses_item"] = JsonSerializer.SerializeToElement(nativeItem, Json),
+            ["action"] = input.Clone()
         };
 
         if (!string.IsNullOrWhiteSpace(item.Status))
