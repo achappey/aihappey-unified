@@ -904,6 +904,19 @@ public static partial class InteractionsUnifiedMapper
                            ?? ExtractValue<string>(tool.Metadata, "messages.tool.type");
         var endpointRaw = ExtractObject<JsonElement?>(tool.Metadata, "chatcompletions.tool.raw")
                           ?? ExtractObject<JsonElement?>(tool.Metadata, "messages.tool.raw");
+        if (endpointType is null && ExtractValue<string>(tool.Metadata, "responses.type") is { } responsesType)
+        {
+            // Responses retains the discriminator and extension fields separately.
+            // Rebuild the native declaration without mutating that source metadata;
+            // falling back to tool.Name would turn hosted built-ins into functions.
+            var responseDefinition = ExtractObject<Dictionary<string, JsonElement>>(tool.Metadata, "responses.extra") is { } extra
+                ? new Dictionary<string, JsonElement>(extra, StringComparer.Ordinal)
+                : [];
+            responseDefinition["type"] = JsonSerializer.SerializeToElement(responsesType, Json);
+            endpointType = responsesType;
+            endpointRaw = JsonSerializer.SerializeToElement(responseDefinition, Json);
+        }
+
         if (endpointType is not null && endpointType != "function")
         {
             // These tools were posted in a compatibility endpoint's tools array,
